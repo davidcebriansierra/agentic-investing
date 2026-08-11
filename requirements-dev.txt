@@ -1,0 +1,10 @@
+# Dependencias minimas para ejecutar la bateria de tests del nucleo deterministico.
+# En una maquina con acceso normal a PyPI:
+#     python -m pip install -r requirements-dev.txt
+pydantic>=2.6
+pydantic-settings>=2.2
+PyYAML>=6.0
+python-dotenv>=1.0
+pytest>=8.0
+pytest-asyncio>=0.23
+pytest-cov>=5.0

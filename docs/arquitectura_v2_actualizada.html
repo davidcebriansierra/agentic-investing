@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Sistema Agéntico de Inversión · Arquitectura v2 Actualizada</title>
+<style>
+:root{
+  --bg:#eef2f7;--ink:#1f2a3a;--muted:#5d6b80;--line:#c7d2e0;--panel:#ffffff;
+  --search:#1d6fb8;--searchbg:#e8f1fb;
+  --agg:#7a3fb0;--aggbg:#f1e9fa;
+  --risk:#c0392b;--riskbg:#fbeae8;
+  --eval:#1f8a5b;--evalbg:#e6f5ee;
+  --dec:#b8860b;--decbg:#fbf2dd;
+  --hitl:#0f6b86;--hitlbg:#e3f3f8;
+  --exec:#d2691e;--execbg:#fbeede;
+  --mon:#5b2d8e;--monbg:#f3eafd;
+  --data:#34495e;--databg:#e9edf2;
+  --infra:#3d5a40;--infrabg:#e8f0e9;
+  --ok:#1f8a5b;--part:#c8860b;--no:#9aa6b6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;font-size:13px;line-height:1.45}
+
+/* ── HEADER ── */
+header{text-align:center;padding:20px 16px 10px;border-bottom:2px solid var(--line);background:#fff}
+header h1{font-size:22px;font-weight:800;letter-spacing:.2px;color:var(--ink)}
+header h1 span{color:var(--search)}
+header .sub{color:var(--muted);margin-top:5px;font-size:12.5px}
+.badge{display:inline-block;background:#1d6fb8;color:#fff;border-radius:20px;
+  padding:2px 10px;font-size:11px;font-weight:700;margin-left:6px;vertical-align:middle}
+.badge.green{background:var(--ok)}
+.badge.gold{background:#b8860b}
+
+/* ── LEGEND ── */
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;
+  padding:10px;background:#f8fafc;border-bottom:1px solid var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.ok{background:var(--ok)} .dot.part{background:var(--part)} .dot.no{background:var(--no)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1520px;margin:0 auto;padding:14px 16px 40px;
+  display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
+.board{display:flex;flex-direction:column;gap:12px}
+
+/* ── PANELS ── */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:11px 13px;box-shadow:0 1px 3px rgba(20,40,70,.06)}
+.panel>h2{margin:0 0 9px;font-size:13px;display:flex;align-items:center;gap:7px;
+  border-bottom:2px solid var(--line);padding-bottom:6px;font-weight:700}
+.num{display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:6px;background:var(--ink);color:#fff;
+  font-size:10.5px;font-weight:800;flex-shrink:0}
+
+/* ── FLOW ARROW ── */
+.flow{text-align:center;color:var(--muted);font-size:11px;padding:2px 0;letter-spacing:.2px}
+.flow b{color:var(--ink)}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.g32{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
+.g23{display:grid;grid-template-columns:1fr 1.5fr;gap:10px}
+.g322{display:grid;grid-template-columns:2fr 1.2fr 1.2fr;gap:10px}
+
+/* ── CARDS ── */
+.card{border:1px solid var(--line);border-left:4px solid var(--line);
+  border-radius:8px;padding:8px 10px;background:#fff;position:relative}
+.card .t{font-weight:700;font-size:12px;display:flex;align-items:center;gap:5px}
+.card .d{color:var(--muted);font-size:11px;margin-top:3px}
+.card .f{font-family:Consolas,monospace;font-size:10px;color:#37506e;
+  margin-top:3px;word-break:break-all;background:#f5f7fa;
+  padding:2px 5px;border-radius:4px}
+.card .freq{font-size:10.5px;color:#1d6fb8;margin-top:2px;font-weight:600}
+.st{position:absolute;top:7px;right:7px;width:10px;height:10px;border-radius:50%}
+.st.ok{background:var(--ok)} .st.part{background:var(--part)} .st.no{background:var(--no)}
+
+/* ── MINI CARDS (for rules/metrics) ── */
+.mini{background:#f8fafc;border:1px solid var(--line);border-radius:6px;
+  padding:6px 8px;font-size:11px}
+.mini b{display:block;font-size:10.5px;color:var(--muted);font-weight:600;
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+
+/* ── COLOR ZONES ── */
+.z-search>h2{color:var(--search)} .z-search .num{background:var(--search)} .z-search{background:var(--searchbg)}
+.z-agg>h2{color:var(--agg)} .z-agg .num{background:var(--agg)} .z-agg{background:var(--aggbg)}
+.z-risk>h2{color:var(--risk)} .z-risk .num{background:var(--risk)} .z-risk{background:var(--riskbg)}
+.z-eval>h2{color:var(--eval)} .z-eval .num{background:var(--eval)} .z-eval{background:var(--evalbg)}
+.z-dec>h2{color:var(--dec)} .z-dec .num{background:var(--dec)} .z-dec{background:var(--decbg)}
+.z-hitl>h2{color:var(--hitl)} .z-hitl .num{background:var(--hitl)} .z-hitl{background:var(--hitlbg)}
+.z-exec>h2{color:var(--exec)} .z-exec .num{background:var(--exec)} .z-exec{background:var(--execbg)}
+.z-mon>h2{color:var(--mon)} .z-mon .num{background:var(--mon)} .z-mon{background:var(--monbg)}
+.z-data>h2{color:var(--data)} .z-data .num{background:var(--data)} .z-data{background:var(--databg)}
+.z-infra>h2{color:var(--infra)} .z-infra .num{background:var(--infra)} .z-infra{background:var(--infrabg)}
+
+.z-search .card{border-left-color:var(--search)}
+.z-agg .card{border-left-color:var(--agg)}
+.z-risk .card{border-left-color:var(--risk)}
+.z-eval .card{border-left-color:var(--eval)}
+.z-dec .card{border-left-color:var(--dec)}
+.z-hitl .card{border-left-color:var(--hitl)}
+.z-exec .card{border-left-color:var(--exec)}
+.z-mon .card{border-left-color:var(--mon)}
+.z-data .card{border-left-color:var(--data)}
+.z-infra .card{border-left-color:var(--infra)}
+
+/* ── PIPELINE ARROW ROW ── */
+.pipe{display:flex;align-items:center;justify-content:center;gap:0;
+  background:#fff;border:1px solid var(--line);border-radius:10px;
+  padding:9px 14px;overflow-x:auto;flex-wrap:wrap;gap:4px}
+.pipe-step{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px}
+.pipe-step .ic{font-size:18px}
+.pipe-step .lb{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.pipe-step .sub{font-size:9.5px;color:#8a9ab0;text-align:center}
+.pipe-arrow{color:#c7d2e0;font-size:22px;margin:0 2px;align-self:center;padding-bottom:14px}
+
+/* ── SIDEBAR ── */
+aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
+.side{background:#13243b;color:#dbe6f3;border-radius:10px;padding:13px 15px}
+.side h3{margin:0 0 8px;font-size:12px;color:#8fd0ff;text-transform:uppercase;letter-spacing:.7px}
+.side ul{margin:0;padding-left:17px}
+.side li{margin:4px 0;font-size:11.5px}
+.side .k{color:#fff;font-weight:700}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.kpi .b{background:#1b2f4d;border-radius:8px;padding:8px;text-align:center}
+.kpi .b .n{font-size:20px;font-weight:800;color:#8fd0ff}
+.kpi .b .l{font-size:9.5px;color:#a9bdd6;text-transform:uppercase;letter-spacing:.4px}
+.scope{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.scope h3{margin:0 0 6px;font-size:12px;color:var(--ink)}
+.tag{display:inline-block;font-size:10.5px;border-radius:20px;padding:2px 8px;
+  margin:2px 2px;border:1px solid var(--line);color:var(--muted)}
+.tag.ok2{border-color:#1f8a5b;color:#1f8a5b;background:#eaf6f0}
+.tag.warn{border-color:#b8860b;color:#b8860b;background:#fdf8ec}
+
+.warn-box{background:#fff8e8;border:1px solid #e8c86a;border-radius:8px;
+  padding:8px 10px;font-size:11px;color:#7a5900;margin-top:2px}
+.ok-box{background:#eaf6f0;border:1px solid #a8d8bc;border-radius:8px;
+  padding:8px 10px;font-size:11px;color:#1a6040;margin-top:2px}
+
+.foot{max-width:1520px;margin:0 auto;padding:6px 16px 30px;
+  color:var(--muted);font-size:11.5px;text-align:center}
+
+@media(max-width:1100px){
+  .wrap{grid-template-columns:1fr}
+  .g2,.g3,.g4,.g5,.g32,.g23,.g322{grid-template-columns:1fr}
+  aside{position:relative}
+}
+@media print{
+  body{background:#fff}
+  .side{background:#13243b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sistema Agéntico de Inversión – IBEX35 &amp; S&amp;P500 <span>(Versión 2 · Actualizada)</span></h1>
+  <div class="sub">
+    Objetivo: expectancy positiva &nbsp;·&nbsp; Target 1,5–3% por operación con Risk/Reward ≥ 2:1
+    <span class="badge green">PAPER runtime ✓</span>
+    <span class="badge">DeepSeek v4-flash</span>
+    <span class="badge gold">IB Gateway 4002</span>
+  </div>
+</header>
+
+<div class="legend">
+  <span><span class="dot ok"></span> Implementado y validado en runtime paper</span>
+  <span><span class="dot part"></span> Implementado / pendiente validación real</span>
+  <span><span class="dot no"></span> Planificado / fuera de alcance actual</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="wrap">
+<div class="board">
+
+  <!-- PIPELINE VISUAL -->
+  <div class="pipe">
+    <div class="pipe-step"><div class="ic">🔍</div><div class="lb">Buscadores</div><div class="sub">×6 LLM</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">🔗</div><div class="lb">Aggregator</div><div class="sub">dedup + memoria 1h</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">🛡️</div><div class="lb">Risk Filter</div><div class="sub">6 reglas duras</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">🧠</div><div class="lb">Evaluadores</div><div class="sub">×4 perfiles LLM</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">⚖️</div><div class="lb">Decisor</div><div class="sub">consenso ponderado</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">👤</div><div class="lb">HITL</div><div class="sub">Telegram TTL 5min</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">📤</div><div class="lb">Executor</div><div class="sub">bracket order IBKR</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">📊</div><div class="lb">Monitor</div><div class="sub">P&amp;L + kill switch</div></div>
+  </div>
+
+  <!-- ROW 1: BUSCADORES + AGGREGATOR + RISK FILTER -->
+  <div class="g322">
+
+    <!-- 1. BUSCADORES -->
+    <div class="panel z-search">
+      <h2><span class="num">1</span>Agentes Buscadores de Oportunidades
+        &nbsp;<small style="font-weight:400;color:var(--muted)">— Detectan y proponen</small></h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🌐 Revisor Cross-Market</div>
+          <div class="freq">⏱ Cada 60 min</div>
+          <div class="d">Scanner IBKR <code>TOP_PERC_GAIN/LOSE</code> → top 25 movers NYSE + BME.<br>
+            BME: <code>STOCK.EU / STK.EU.BM</code> · suscripción «Bolsa de Madrid Plus» activa.</div>
+          <div class="f">cross_market.py · movers_count=25 · sector_ttl=24h</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">📰 Agente Noticias</div>
+          <div class="freq">⏱ Cada 30 min · event-driven</div>
+          <div class="d">NewsAPI · Marketaux · Finnhub · AlphaVantage. Análisis LLM de impacto económico/geopolítico.</div>
+          <div class="f">news.py</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">💬 Agente Redes Sociales</div>
+          <div class="freq">⏱ Cada 10 min</div>
+          <div class="d">Apify (Twitter) · Reddit · StockTwits. Lote rotatorio 20 tickers/cashtag. max_posts=100.</div>
+          <div class="f">social.py · apify_batch_size=20</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🌅 Agente Preapertura</div>
+          <div class="freq">⏱ Cada 5 min (gating ±10 min apertura)</div>
+          <div class="d">Gap vs. cierre anterior. Activo solo en ventana de preapertura de cada mercado (<code>zoneinfo</code>).
+            Solo posiciones abiertas + top 20 movers scanner IBKR.</div>
+          <div class="f">premarket.py · lead_minutes=10 · requires tzdata</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">📈 Agente Análisis Técnico</div>
+          <div class="freq">⏱ Cada 10 min · lote rotatorio ≤50 tickers</div>
+          <div class="d">OHLCV 5 min (60 barras) via IBKR. Indicadores: RSI, MACD, SMA/EMA, ATR, Bollinger.
+            Pacing: ≤60 req históricos / 10 min.</div>
+          <div class="f">technical.py · batch_size=50 · ohlcv_bars=60</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">📊 Agente Análisis Fundamental</div>
+          <div class="freq">⏱ Cada 30 min · lote rotatorio ≤35 tickers</div>
+          <div class="d">Finnhub + yfinance (fallback). Ratios: P/E, P/B, EPS, deuda, márgenes, crecimiento.
+            Semáforo(1) + delay 2,1 s entre requests.</div>
+          <div class="f">fundamental.py · batch_size=35 · ~23h cobertura total</div>
+        </div>
+
+      </div>
+
+      <div class="ok-box" style="margin-top:8px">
+        <b>Universo vigilado:</b> 508 tickers — IBEX35 (.MC) + S&amp;P500.
+        Rotación por lotes evita sesgo "primeros N" y respeta límites de API.
+        Contexto formateado por <code>context.py</code> (cap 40 items/formatter).
+      </div>
+    </div>
+
+    <!-- 1.5 AGGREGATOR -->
+    <div class="panel z-agg">
+      <h2><span class="num">1.5</span>Aggregator / Deduplicador</h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🔗 Dedup intra-lote</div>
+          <div class="d">Colapsa duplicados casi simultáneos de la misma clave <code>(ticker, dirección, fecha)</code> en ventana de 5 min. Representante = mayor <code>estimated_win_probability</code>.</div>
+          <div class="f">window_seconds: 300</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🧠 Memoria rodante 1h <span style="font-size:10px;color:var(--ok)">(NUEVO)</span></div>
+          <div class="d">Mantiene qué fuentes han señalado cada clave en la última hora (<code>cross_source_window_seconds: 3600</code>).
+            Si una segunda fuente confirma el mismo ticker, aplica bonus de confianza:</div>
+          <div class="f">bonus = min(0.05 × (N_fuentes−1), 0.15)<br>
+            p_win' = min(1.0, p_win + bonus)</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">📝 Anotación multi-fuente</div>
+          <div class="d">El representante recibe <code>converging_sources</code>, <code>sources_count</code> y <code>confidence_bonus</code> en <code>supporting_data</code>.
+            El evaluador recibe <code>{multi_source_context}</code> en el prompt.</div>
+        </div>
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🧹 Poda de memoria</div>
+          <div class="d">Cada ciclo elimina entradas cuyo timestamp supera la ventana. Consumo de memoria acotado.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 1.6 RISK FILTER -->
+    <div class="panel z-risk">
+      <h2><span class="num">1.6</span>Filtro de Riesgo (Pre-evaluación)
+        &nbsp;<small style="font-weight:400;font-size:11px">Validaciones determinísticas</small></h2>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📏 Exposición por activo</div>
+          <div class="d">Posición proyectada ≤ <b>10%</b> del capital</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🏭 Exposición por sector</div>
+          <div class="d">Exposición sectorial proyectada ≤ <b>25%</b></div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🔗 Correlación</div>
+          <div class="d">Correlación con posiciones abiertas ≤ <b>0,70</b></div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">💧 Liquidez</div>
+          <div class="d">Volumen medio 20d ≥ <b>100.000</b> títulos</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">💼 Capital total en riesgo</div>
+          <div class="d">Suma de capital en riesgo simultáneo ≤ <b>30%</b></div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📉 VaR(95%) del portfolio</div>
+          <div class="d">VaR proyectado ≤ <b>5%</b></div></div>
+      </div>
+      <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="mini"><b>PASS</b>→ Evaluadores</div>
+        <div class="mini" style="background:#fbeae8"><b>REJECT</b>→ NO_OPERATE</div>
+      </div>
+    </div>
+
+  </div><!-- /g322 row1 -->
+
+  <!-- FLOW TAG -->
+  <div class="flow">Las oportunidades que pasan el Risk Filter se evalúan en paralelo por los 4 evaluadores LLM → <b>asyncio.gather</b></div>
+
+  <!-- ROW 2: EVALUADORES + DECISOR + HITL -->
+  <div class="g3">
+
+    <!-- 2. EVALUADORES -->
+    <div class="panel z-eval">
+      <h2><span class="num">2</span>Agentes Evaluadores
+        &nbsp;<small style="font-weight:400;color:var(--muted)">Evalúan y dan score (0–1)</small></h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🔴 Alto Riesgo</div>
+          <div class="d">Perfil agresivo. Tolera volatilidad, busca momentum y situaciones especiales. Score (0–1) · Confianza (0–1).</div>
+          <div class="f">Peso decisor: 0.30 · DeepSeek v4-flash</div>
+        </div>
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🟡 Moderado</div>
+          <div class="d">Equilibrio riesgo/rentabilidad. Criterios estándar de entrada/salida.</div>
+          <div class="f">Peso decisor: 0.30 · DeepSeek v4-flash</div>
+        </div>
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">🟢 Conservador</div>
+          <div class="d">Preservación de capital. Exige R/R alto y baja volatilidad implícita.</div>
+          <div class="f">Peso decisor: 0.30 · DeepSeek v4-flash</div>
+        </div>
+        <div class="card">
+          <span class="st ok"></span>
+          <div class="t">📣 Sensacionalista</div>
+          <div class="d">Reacciona a noticias impactantes y sentimiento extremo en redes. Peso reducido.</div>
+          <div class="f">Peso decisor: 0.10 · DeepSeek v4-flash</div>
+        </div>
+
+        <div class="ok-box">
+          <b>Motor:</b> LLM (DeepSeek v4-flash) en modo JSON.
+          Prompts versionados en <code>config/prompts/evaluators/</code>.
+          Placeholder <code>{multi_source_context}</code> inyectado desde el Aggregator.
+          Evaluación <b>concurrente</b> via <code>asyncio.gather</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. DECISOR -->
+    <div class="panel z-dec">
+      <h2><span class="num">3</span>Agente Decisor
+        &nbsp;<small style="font-weight:400;color:var(--muted)">Toma la decisión final</small></h2>
+
+      <div style="margin-bottom:8px">
+        <div class="mini"><b>Score final</b>Σ (peso_i × score_i × conf_i)</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📊 Consenso ponderado</div>
+          <div class="d">score_final ≥ <b>0,59</b> · ≥ <b>3</b> evaluadores con score ≥ 0,50</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">💰 Expectancy calibrada</div>
+          <div class="d">Expectancy &gt; <b>0,30%</b> · Calibrada con memoria episódica (historial de trades)</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📐 Risk/Reward</div>
+          <div class="d">R/R ≥ <b>2,0</b></div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">✅ Todas las reglas ↑ + Risk Filter PASS</div></div>
+      </div>
+
+      <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="mini" style="background:#eaf6f0;border-color:#a8d8bc;color:#1a6040"><b>OPERATE</b>→ HITL</div>
+        <div class="mini" style="background:#fbeae8;border-color:#e8aaaa;color:#7a1a1a"><b>NO_OPERATE</b>→ Audit Log</div>
+      </div>
+
+      <div class="ok-box" style="margin-top:8px">
+        Determinístico (sin LLM). Cada decisión se registra en PostgreSQL + Redis Streams + Audit Logger.
+      </div>
+    </div>
+
+    <!-- 4. HITL -->
+    <div class="panel z-hitl">
+      <h2><span class="num">4</span>Canal de Aprobación Humana (HITL)
+        &nbsp;<small style="font-weight:400;color:var(--muted)">Human-in-the-Loop</small></h2>
+
+      <div class="card" style="margin-bottom:8px;border-left-color:var(--hitl)">
+        <span class="st ok"></span>
+        <div class="t">🤖 Bot de Telegram</div>
+        <div class="d">Envía resumen: ticker, score, expectancy, R/R, entrada, TP, SL, fuentes, justificación del LLM.</div>
+        <div class="f">TelegramHITLClient · python-telegram-bot</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">✅ Aprobar operación</div>
+          <div class="d">→ Pipeline continúa al Executor</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">❌ Rechazar operación</div>
+          <div class="d">→ NO_OPERATE · registrado en audit</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">⏸ Pausar 1h</div>
+          <div class="d">→ NO_OPERATE · cooldown de 1 hora</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">⏱ Timeout TTL (300 s)</div>
+          <div class="d">→ NO_OPERATE automático. <i>No-operar por defecto.</i></div></div>
+      </div>
+
+      <div class="ok-box" style="margin-top:8px">
+        Implementado en <b>LangGraph</b> como nodo de interrupción (<code>interrupt_before=["execute"]</code>).
+        Estado del grafo persiste hasta recibir callback del bot.
+        TTL gestionado con <code>asyncio.wait_for</code>.
+      </div>
+    </div>
+
+  </div><!-- /g3 row2 -->
+
+  <!-- ROW 3: EXECUTOR + MONITOR -->
+  <div class="g23">
+
+    <!-- 5. EXECUTOR -->
+    <div class="panel z-exec">
+      <h2><span class="num">5</span>Agente Executor
+        &nbsp;<small style="font-weight:400;color:var(--muted)">Ejecuta órdenes en el mercado</small></h2>
+      <div class="g2">
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div class="card"><span class="st ok"></span>
+            <div class="t">🔍 Pre-Trade Validator</div>
+            <div class="d">Mercado abierto · capital suficiente · activo negociable · desviación de precio ≤ 2% · R/R ≥ 2</div></div>
+          <div class="card"><span class="st ok"></span>
+            <div class="t">📤 Bracket Order IBKR</div>
+            <div class="d">Entrada (LMT) + Take-Profit (LMT) + Stop-Loss (STP) como OCA group via <code>ib_async</code>.
+              BrokerClient: <code>client_id=11</code> (write).</div></div>
+          <div class="card"><span class="st ok"></span>
+            <div class="t">📋 Tipos de órdenes</div>
+            <div class="d">Market · Limit · Trailing Stop · Stop Entry · OCA / Bracket</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div class="card" style="border-left-color:var(--search)"><span class="st ok"></span>
+            <div class="t">🏦 Interactive Brokers</div>
+            <div class="d"><b>IB Gateway</b> (sin GUI)<br>
+              Paper: puerto <b>4002</b> · client_id_read=<b>10</b> · client_id_write=<b>11</b><br>
+              Live (futuro): puerto <b>4001</b></div>
+            <div class="f">ib_async · conexión directa (no MCP)</div></div>
+          <div class="card" style="border-left-color:#c0392b">
+            <span class="st ok"></span>
+            <div class="t">⚠️ Error 162 gestionado</div>
+            <div class="d">Cortacircuitos 90s ante IP diferente. Filtro de ruido <code>_IBWrapperNoiseFilter</code>.
+              Diagnóstico único sin spam de logs.</div></div>
+          <div class="mini"><b>Instrumentos</b>Acciones · ETFs · Futuros</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. MONITOR -->
+    <div class="panel z-mon">
+      <h2><span class="num">6</span>Agente Monitor
+        &nbsp;<small style="font-weight:400;color:var(--muted)">Supervisión continua</small></h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">💰 Revisión P&amp;L</div>
+          <div class="d">Cada 60 min. P&amp;L no realizado por posición. Alerta si desviación > umbral.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🛑 Check Stop-Loss</div>
+          <div class="d">Cada 15 min. Detecta posiciones sin SL activo y alerta al operador.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🔴 Kill Switch</div>
+          <div class="d">Drawdown intradiario &gt; <b>3%</b> o ≥ <b>5</b> pérdidas consecutivas → bloquea todas las nuevas operaciones.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📊 11 métricas Prometheus</div>
+          <div class="d"><code>:8000/metrics</code> · opportunities, decisions, orders, risk_rejections,
+            kill_switch, signal_to_order_seconds, pnl_unrealized_pct, open_positions,
+            consecutive_losses, missing_sl_total, monitoring_events_total</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🖥️ Dashboard Streamlit</div>
+          <div class="d"><code>agent_monitor.py</code>: timeline eventos, tablas oportunidades/decisiones/órdenes/LLM en hora local.</div></div>
+      </div>
+    </div>
+
+  </div><!-- /g23 row3 -->
+
+  <!-- ROW 4: DATOS + INFRAESTRUCTURA -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+
+    <!-- FUENTES EXTERNAS -->
+    <div class="panel z-data">
+      <h2><span class="num">→</span>Fuentes Externas (vía APIs) &amp; Capa de Datos</h2>
+      <div class="g5">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📰 NewsAPI / Marketaux</div>
+          <div class="d">Noticias financieras en tiempo real. Buscador <code>news</code>.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📊 Finnhub</div>
+          <div class="d">Noticias + fundamentales (métricas + perfil empresa). 2 req/ticker.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📈 AlphaVantage</div>
+          <div class="d">Datos históricos alternativos. Buscador <code>news</code>.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">💬 Apify / Reddit / StockTwits</div>
+          <div class="d">Sentimiento social. Lote rotatorio 20 cashtags/ciclo. max_posts=100.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🔵 DeepSeek v4-flash (LLM)</div>
+          <div class="d">API compatible OpenAI. Motor de razonamiento de todos los buscadores y evaluadores. 200 OK confirmado en runtime.</div></div>
+      </div>
+    </div>
+
+    <!-- CAPA DE CONOCIMIENTO -->
+    <div class="panel z-data">
+      <h2><span class="num">7</span>Capa de Conocimiento, Memoria y Aprendizaje</h2>
+      <div class="g4">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🗄️ PostgreSQL / TimescaleDB</div>
+          <div class="d">Almacenamiento append-only de oportunidades, evaluaciones, decisiones, ejecuciones y eventos. 8 tablas.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📨 Redis Streams</div>
+          <div class="d">Bus de eventos entre fases del pipeline. <code>RedisStreamBus</code> (prod) / <code>InMemoryStreamBus</code> (dev/test).</div></div>
+        <div class="card"><span class="st part"></span>
+          <div class="t">🧠 Qdrant (Vector DB)</div>
+          <div class="d">Memoria semántica para RAG y búsqueda de patrones históricos. Actualmente in-memory. Embeddings reales = trabajo futuro.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📚 Memoria Episódica</div>
+          <div class="d">Calibra expectancy con historial de trades similares (winrate, avg_win, avg_loss). Rebalanceo cada 50 trades.</div></div>
+      </div>
+    </div>
+
+    <!-- INFRAESTRUCTURA -->
+    <div class="panel z-infra">
+      <h2><span class="num">8</span>Infraestructura y Gobernanza (transversal)</h2>
+      <div class="g4">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🔄 Orquestación</div>
+          <div class="d"><b>LangGraph</b> (workflow.py) + Python puro (pipeline.py). APScheduler para buscadores periódicos.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📦 Docker Compose</div>
+          <div class="d">Pila completa: Postgres+TimescaleDB, Redis, Qdrant, Prometheus, Grafana, App. K8s manifiestos disponibles.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📊 Prometheus + Grafana</div>
+          <div class="d">11 métricas. Grafana <code>:3000</code> con dashboard <code>agentic_overview.json</code> auto-provisionado.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📋 Audit Logger</div>
+          <div class="d">Registro JSON estructurado de cada evento: oportunidad → evaluación → decisión → HITL → ejecución. MiFID II art.17.</div></div>
+      </div>
+      <div class="g2" style="margin-top:8px">
+        <div class="warn-box">
+          <b>⚠️ Trabajo futuro:</b> Gobierno IA (NeuralTrust / watsonx.governance) · Embeddings reales Qdrant · Modo LIVE (puerto 4001)
+        </div>
+        <div class="ok-box">
+          <b>✅ Cumplimiento:</b> MiFID II art.17 (kill switch, pre-trade, audit) · EU AI Act · DORA · SR 11-7 / SS1/23
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /datos + infra -->
+
+</div><!-- /board -->
+
+<!-- ══════════════════════════════ SIDEBAR ══════════════════════════════ -->
+<aside>
+
+  <div class="side">
+    <h3>KPIs del Sistema</h3>
+    <div class="kpi">
+      <div class="b"><div class="n">6</div><div class="l">Buscadores LLM</div></div>
+      <div class="b"><div class="n">508</div><div class="l">Tickers watchlist</div></div>
+      <div class="b"><div class="n">4</div><div class="l">Evaluadores</div></div>
+      <div class="b"><div class="n">11</div><div class="l">Métricas Prometheus</div></div>
+      <div class="b"><div class="n">1h</div><div class="l">Mem. multi-fuente</div></div>
+      <div class="b"><div class="n">R/R≥2</div><div class="l">Mínimo decisor</div></div>
+      <div class="b"><div class="n">3%</div><div class="l">Kill switch DD</div></div>
+      <div class="b"><div class="n">PAPER</div><div class="l">Modo actual</div></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <h3>Cambios vs. Versión Original</h3>
+    <ul>
+      <li><span class="k">Aggregator:</span> memoria rodante 1h + bonus convergencia multi-fuente (+0,05/fuente, max +0,15)</li>
+      <li><span class="k">LLM:</span> DeepSeek v4-flash (antes OpenAI/mock). 200 OK confirmado en runtime.</li>
+      <li><span class="k">IBKR:</span> conexión directa ib_async (sin MCP Server). client_id separados (10 read / 11 write).</li>
+      <li><span class="k">Error 162:</span> cortacircuitos 90s + filtro de ruido + diagnóstico único</li>
+      <li><span class="k">Scanner BME:</span> STOCK.EU / STK.EU.BM · suscripción Bolsa de Madrid Plus activa</li>
+      <li><span class="k">Preapertura:</span> gating por ventana horaria con zoneinfo + tzdata</li>
+      <li><span class="k">Técnico:</span> lote ≤50 tickers/10min (pacing IBKR)</li>
+      <li><span class="k">Fundamental:</span> lote ≤35 tickers/30min · Semaphore(1) + delay 2,1s</li>
+      <li><span class="k">Evaluadores:</span> {multi_source_context} en todos los prompts</li>
+      <li><span class="k">Dashboard:</span> agent_monitor.py (Streamlit) añadido</li>
+    </ul>
+  </div>
+
+  <div class="side">
+    <h3>Configuración clave</h3>
+    <ul>
+      <li><span class="k">config.yaml</span> — mercados, LLM, buscadores, aggregator, HITL</li>
+      <li><span class="k">risk_limits.yaml</span> — exposición, correlación, VaR, kill switch</li>
+      <li><span class="k">decisor_weights.yaml</span> — pesos (0.3/0.3/0.3/0.1) y umbrales</li>
+    </ul>
+  </div>
+
+  <div class="scope">
+    <h3>Tecnologías</h3>
+    <span class="tag ok2">Python 3.13</span>
+    <span class="tag ok2">LangGraph</span>
+    <span class="tag ok2">DeepSeek v4-flash</span>
+    <span class="tag ok2">ib_async</span>
+    <span class="tag ok2">pydantic v2</span>
+    <span class="tag ok2">pytest (19 ficheros)</span>
+    <span class="tag ok2">Prometheus</span>
+    <span class="tag ok2">Grafana</span>
+    <span class="tag ok2">TimescaleDB</span>
+    <span class="tag ok2">Redis Streams</span>
+    <span class="tag ok2">Qdrant</span>
+    <span class="tag ok2">Telegram Bot</span>
+    <span class="tag ok2">Docker Compose</span>
+    <span class="tag ok2">Kubernetes</span>
+    <span class="tag ok2">Streamlit</span>
+    <span class="tag warn">NeuralTrust (futuro)</span>
+    <span class="tag warn">Qdrant real (futuro)</span>
+    <span class="tag warn">Modo LIVE (futuro)</span>
+  </div>
+
+  <div class="side">
+    <h3>Flujo principal paso a paso</h3>
+    <ol style="padding-left:17px;font-size:11.5px">
+      <li style="margin:3px 0">Los 6 buscadores detectan oportunidades periódicamente (LLM → JSON → Pydantic)</li>
+      <li style="margin:3px 0">El Aggregator deduplicada y aplica bonus de convergencia multi-fuente (memoria 1h)</li>
+      <li style="margin:3px 0">El Risk Filter rechaza si viola alguno de los 6 límites determinísticos</li>
+      <li style="margin:3px 0">Los 4 evaluadores analizan en paralelo (DeepSeek v4-flash, JSON mode)</li>
+      <li style="margin:3px 0">El Decisor calcula score ponderado, expectancy y R/R</li>
+      <li style="margin:3px 0">Si OPERATE → Bot Telegram: Aprobar / Rechazar / Pausar / Timeout</li>
+      <li style="margin:3px 0">Si aprobado → Pre-Trade Validator → Bracket Order a IBKR via ib_async</li>
+      <li style="margin:3px 0">El Monitor vigila P&L, SL y activa kill switch si procede</li>
+      <li style="margin:3px 0">Toda decisión queda en PostgreSQL + Redis Streams + Audit Logger</li>
+    </ol>
+  </div>
+
+</aside>
+</div><!-- /wrap -->
+
+<div class="foot">
+  Documento autocontenido. Sistema Agéntico de Inversión v2 · Estado validado en runtime PAPER
+  (IB Gateway 4002 · DeepSeek v4-flash) · Agosto 2026.
+  Ver también: <code>docs/arquitectura.html</code> · <code>docs/diagrama_implementado.html</code>
+</div>
+
+</body>
+</html>

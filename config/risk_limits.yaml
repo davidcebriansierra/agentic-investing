@@ -1,0 +1,28 @@
+exposure:
+  max_per_asset_pct: 10
+  max_per_sector_pct: 25
+  max_total_at_risk_pct: 30
+correlation:
+  max_with_open_positions: 0.7
+liquidity:
+  min_avg_volume_20d: 100000
+position_sizing:
+  default_pct: 5
+  min_pct: 1
+  max_pct: 10
+stop_loss:
+  min_distance_pct: 0.5
+  max_distance_pct: 5.0
+take_profit:
+  min_pct: 1.5
+  max_pct: 3.0
+risk_reward:
+  min_ratio: 2.0
+var:
+  confidence: 0.95
+  max_portfolio_var_pct: 5.0
+execution:
+  max_price_deviation_pct: 2.0
+kill_switch:
+  max_intraday_drawdown_pct: 3.0
+  max_consecutive_losses: 5

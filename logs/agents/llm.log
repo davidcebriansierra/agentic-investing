@@ -1,0 +1,81 @@
+2026-08-11 07:51:22,291 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 07:51:42,974 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 07:51:43,425 INFO agentic.searchers.llm cross_market: 0/0 oportunidades validas del LLM.
+2026-08-11 07:51:52,891 INFO agentic.searchers.llm news: 1/1 oportunidades validas del LLM.
+2026-08-11 07:53:44,062 INFO agentic.searchers.llm fundamental: 1/1 oportunidades validas del LLM.
+2026-08-11 07:53:54,261 INFO agentic.searchers.llm technical: 6/6 oportunidades validas del LLM.
+2026-08-11 07:56:28,810 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:01:28,826 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:02:12,532 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 08:06:28,839 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:11:28,849 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:11:31,706 INFO agentic.searchers.llm technical: 6/6 oportunidades validas del LLM.
+2026-08-11 08:13:20,284 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 08:16:28,860 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:21:28,877 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:23:31,147 INFO agentic.searchers.llm news: 2/2 oportunidades validas del LLM.
+2026-08-11 08:24:21,699 DEBUG agentic.searchers.llm social: contexto vacio; no se invoca el LLM.
+2026-08-11 08:26:28,892 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:27:25,289 INFO agentic.searchers.llm fundamental: 3/3 oportunidades validas del LLM.
+2026-08-11 08:30:03,746 INFO agentic.searchers.llm technical: 7/7 oportunidades validas del LLM.
+2026-08-11 08:31:28,899 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:34:52,384 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 08:36:28,905 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:41:28,914 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:45:48,620 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 08:46:28,917 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 08:51:37,068 INFO agentic.searchers.llm premarket: 0/0 oportunidades validas del LLM.
+2026-08-11 08:51:52,057 INFO agentic.searchers.llm cross_market: 0/0 oportunidades validas del LLM.
+2026-08-11 08:55:30,537 INFO agentic.searchers.llm news: 1/1 oportunidades validas del LLM.
+2026-08-11 08:56:21,870 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 08:56:45,039 INFO agentic.searchers.llm premarket: 0/0 oportunidades validas del LLM.
+2026-08-11 09:01:49,093 INFO agentic.searchers.llm premarket: 0/0 oportunidades validas del LLM.
+2026-08-11 09:01:52,120 INFO agentic.searchers.llm fundamental: 0/0 oportunidades validas del LLM.
+2026-08-11 09:06:32,692 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 09:06:53,725 INFO agentic.searchers.llm premarket: 0/0 oportunidades validas del LLM.
+2026-08-11 09:11:53,729 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:16:45,480 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 09:16:53,738 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:21:53,754 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:26:47,218 INFO agentic.searchers.llm news: 1/1 oportunidades validas del LLM.
+2026-08-11 09:26:53,763 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:26:55,677 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 09:31:53,775 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:33:48,859 INFO agentic.searchers.llm fundamental: 0/0 oportunidades validas del LLM.
+2026-08-11 09:36:53,777 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:37:12,394 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 09:41:53,781 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:46:53,792 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:48:23,932 INFO agentic.searchers.llm social: 1/1 oportunidades validas del LLM.
+2026-08-11 09:51:53,807 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:52:00,499 INFO agentic.searchers.llm cross_market: 0/0 oportunidades validas del LLM.
+2026-08-11 09:56:53,815 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 09:57:37,715 INFO agentic.searchers.llm news: 0/0 oportunidades validas del LLM.
+2026-08-11 09:59:33,442 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 10:01:53,821 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:05:41,466 INFO agentic.searchers.llm fundamental: 0/0 oportunidades validas del LLM.
+2026-08-11 10:06:53,826 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:09:42,972 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 10:11:53,831 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:16:53,836 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:20:18,648 INFO agentic.searchers.llm social: 1/1 oportunidades validas del LLM.
+2026-08-11 10:21:53,839 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:26:53,843 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:27:57,707 INFO agentic.searchers.llm news: 0/0 oportunidades validas del LLM.
+2026-08-11 10:31:36,690 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 10:31:53,848 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:36:53,862 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:37:20,692 INFO agentic.searchers.llm fundamental: 0/0 oportunidades validas del LLM.
+2026-08-11 10:41:53,563 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 10:41:53,870 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:46:53,885 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:51:54,074 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:52:06,664 INFO agentic.searchers.llm cross_market: 0/0 oportunidades validas del LLM.
+2026-08-11 10:52:08,495 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 10:56:54,080 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 10:58:11,606 INFO agentic.searchers.llm news: 0/0 oportunidades validas del LLM.
+2026-08-11 11:01:54,096 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 11:02:28,069 INFO agentic.searchers.llm social: 0/0 oportunidades validas del LLM.
+2026-08-11 11:06:54,099 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.
+2026-08-11 11:09:31,660 INFO agentic.searchers.llm fundamental: 3/3 oportunidades validas del LLM.
+2026-08-11 11:12:02,867 DEBUG agentic.searchers.llm premarket: contexto vacio; no se invoca el LLM.

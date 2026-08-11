@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: "Agentic dashboards"
+    orgId: 1
+    folder: "Agentic Investing"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

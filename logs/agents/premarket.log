@@ -1,0 +1,90 @@
+2026-08-11 07:51:22,291 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T05:51:22.292063+00:00"}
+2026-08-11 07:56:28,810 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T05:56:28.811163+00:00"}
+2026-08-11 08:01:28,825 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:01:28.826354+00:00"}
+2026-08-11 08:06:28,838 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:06:28.839388+00:00"}
+2026-08-11 08:11:28,849 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:11:28.849515+00:00"}
+2026-08-11 08:16:28,860 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:16:28.861063+00:00"}
+2026-08-11 08:21:28,877 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:21:28.878199+00:00"}
+2026-08-11 08:26:28,892 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:26:28.892549+00:00"}
+2026-08-11 08:31:28,899 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:31:28.899701+00:00"}
+2026-08-11 08:36:28,904 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:36:28.905179+00:00"}
+2026-08-11 08:41:28,914 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:41:28.914751+00:00"}
+2026-08-11 08:46:28,916 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T06:46:28.917158+00:00"}
+2026-08-11 08:51:35,616 INFO agentic.searchers.premarket premarket: 2 snapshots para el LLM (fases: [('IBEX35', 'preopen')]).
+{"event": "llm_request", "prompt_name": "searchers/premarket", "prompt_version": "v1.0", "model": "deepseek-v4-flash", "temperature": 0.3, "max_tokens": 1500, "context_chars": 142, "context_snippet": "- BBVA.MC (BME): prev_close=24.71, premarket=24.69, gap=-0.08%, vol=2.0\n- GRF.MC (BME): prev_close=10.006, premarket=10.0, gap=-0.06%, vol=0.0", "system_prompt_chars": 1879, "ts": "2026-08-11T06:51:35.629347+00:00"}
+{"event": "llm_response", "model": "deepseek-v4-flash", "prompt_tokens": 725, "completion_tokens": 89, "total_tokens": 814, "raw_response": "{\"opportunities\": []}", "ts": "2026-08-11T06:51:37.068340+00:00"}
+{"event": "opportunities", "valid": 0, "total_parsed": 0, "opportunities": [], "ts": "2026-08-11T06:51:37.068651+00:00"}
+2026-08-11 08:56:43,493 INFO agentic.searchers.premarket premarket: 2 snapshots para el LLM (fases: [('IBEX35', 'preopen')]).
+{"event": "llm_request", "prompt_name": "searchers/premarket", "prompt_version": "v1.0", "model": "deepseek-v4-flash", "temperature": 0.3, "max_tokens": 1500, "context_chars": 142, "context_snippet": "- BBVA.MC (BME): prev_close=24.71, premarket=24.69, gap=-0.08%, vol=2.0\n- GRF.MC (BME): prev_close=10.006, premarket=10.0, gap=-0.06%, vol=0.0", "system_prompt_chars": 1879, "ts": "2026-08-11T06:56:43.493505+00:00"}
+{"event": "llm_response", "model": "deepseek-v4-flash", "prompt_tokens": 725, "completion_tokens": 100, "total_tokens": 825, "raw_response": "{\"opportunities\": []}", "ts": "2026-08-11T06:56:45.039288+00:00"}
+{"event": "opportunities", "valid": 0, "total_parsed": 0, "opportunities": [], "ts": "2026-08-11T06:56:45.039629+00:00"}
+2026-08-11 09:01:46,719 INFO agentic.searchers.premarket premarket: 1 snapshots para el LLM (fases: [('IBEX35', 'postopen')]).
+{"event": "llm_request", "prompt_name": "searchers/premarket", "prompt_version": "v1.0", "model": "deepseek-v4-flash", "temperature": 0.3, "max_tokens": 1500, "context_chars": 75, "context_snippet": "- BBVA.MC (BME): prev_close=24.71, premarket=24.74, gap=+0.12%, vol=15708.0", "system_prompt_chars": 1812, "ts": "2026-08-11T07:01:46.719886+00:00"}
+{"event": "llm_response", "model": "deepseek-v4-flash", "prompt_tokens": 692, "completion_tokens": 91, "total_tokens": 783, "raw_response": "{\"opportunities\": []}", "ts": "2026-08-11T07:01:49.093786+00:00"}
+{"event": "opportunities", "valid": 0, "total_parsed": 0, "opportunities": [], "ts": "2026-08-11T07:01:49.094169+00:00"}
+2026-08-11 09:06:50,735 INFO agentic.searchers.premarket premarket: 1 snapshots para el LLM (fases: [('IBEX35', 'postopen')]).
+{"event": "llm_request", "prompt_name": "searchers/premarket", "prompt_version": "v1.0", "model": "deepseek-v4-flash", "temperature": 0.3, "max_tokens": 1500, "context_chars": 75, "context_snippet": "- BBVA.MC (BME): prev_close=24.71, premarket=24.77, gap=+0.24%, vol=12703.0", "system_prompt_chars": 1812, "ts": "2026-08-11T07:06:50.735796+00:00"}
+{"event": "llm_response", "model": "deepseek-v4-flash", "prompt_tokens": 692, "completion_tokens": 258, "total_tokens": 950, "raw_response": "{\"opportunities\": []}", "ts": "2026-08-11T07:06:53.725320+00:00"}
+{"event": "opportunities", "valid": 0, "total_parsed": 0, "opportunities": [], "ts": "2026-08-11T07:06:53.725630+00:00"}
+2026-08-11 09:11:53,728 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:11:53.729280+00:00"}
+2026-08-11 09:16:53,738 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:16:53.739257+00:00"}
+2026-08-11 09:21:53,754 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:21:53.754942+00:00"}
+2026-08-11 09:26:53,762 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:26:53.763216+00:00"}
+2026-08-11 09:31:53,774 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:31:53.775282+00:00"}
+2026-08-11 09:36:53,777 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:36:53.777760+00:00"}
+2026-08-11 09:41:53,781 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:41:53.782089+00:00"}
+2026-08-11 09:46:53,792 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:46:53.792570+00:00"}
+2026-08-11 09:51:53,807 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:51:53.807880+00:00"}
+2026-08-11 09:56:53,815 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T07:56:53.815952+00:00"}
+2026-08-11 10:01:53,821 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:01:53.821945+00:00"}
+2026-08-11 10:06:53,826 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:06:53.826645+00:00"}
+2026-08-11 10:11:53,831 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:11:53.831718+00:00"}
+2026-08-11 10:16:53,835 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:16:53.836393+00:00"}
+2026-08-11 10:21:53,839 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:21:53.839449+00:00"}
+2026-08-11 10:26:53,843 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:26:53.843779+00:00"}
+2026-08-11 10:31:53,847 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:31:53.848324+00:00"}
+2026-08-11 10:36:53,862 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:36:53.862951+00:00"}
+2026-08-11 10:41:53,870 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:41:53.870467+00:00"}
+2026-08-11 10:46:53,885 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:46:53.885820+00:00"}
+2026-08-11 10:51:54,074 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:51:54.074890+00:00"}
+2026-08-11 10:56:54,080 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T08:56:54.081087+00:00"}
+2026-08-11 11:01:54,096 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T09:01:54.096998+00:00"}
+2026-08-11 11:06:54,099 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T09:06:54.099512+00:00"}
+2026-08-11 11:12:02,867 DEBUG agentic.searchers.premarket premarket: fuera de ventana (preopen lead=10min / postopen post=10min). Mercados configurados: ['IBEX35', 'SP500'].
+{"event": "skip", "reason": "contexto vacio", "ts": "2026-08-11T09:12:02.868200+00:00"}

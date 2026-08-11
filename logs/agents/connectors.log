@@ -1,0 +1,585 @@
+2026-08-11 07:51:15,162 INFO agentic.connectors Usando HttpNewsClient con fuentes: alphavantage, finnhub, marketaux, newsapi.
+2026-08-11 07:51:15,163 INFO agentic.connectors.http Cache de feeds activa (Redis en redis://127.0.0.1:6379/0).
+2026-08-11 07:51:15,163 INFO agentic.connectors Usando ApifySocialClient (Reddit + Stocktwits via Apify).
+2026-08-11 07:51:15,163 INFO agentic.connectors.http Cache de feeds activa (Redis en redis://127.0.0.1:6379/0).
+2026-08-11 07:51:15,164 INFO agentic.connectors.apify_social Usando ApifySocialClient (Twitter via Apify, lote=20, max_posts=100).
+2026-08-11 07:51:15,164 INFO agentic.connectors.http Cache de feeds activa (Redis en redis://127.0.0.1:6379/0).
+2026-08-11 07:51:15,164 INFO agentic.connectors Usando FallbackFundamentalsClient (Finnhub + yfinance fallback).
+2026-08-11 07:51:16,688 INFO agentic.connectors TRADING_MODE=PAPER: usando IBKRMarketDataClient (127.0.0.1:4002, client_id=10).
+2026-08-11 07:51:16,689 INFO agentic.connectors TRADING_MODE=PAPER: usando IBKRBrokerClient (127.0.0.1:4002, client_id=11, account=DU1234567).
+2026-08-11 07:51:19,664 INFO agentic.connectors Usando TelegramHITLClient (1 usuarios autorizados).
+2026-08-11 07:51:21,777 INFO agentic.connectors.telegram Bot de Telegram iniciado (1 usuarios autorizados).
+2026-08-11 07:51:22,042 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=20): ['ACS.MC', 'ACX.MC', 'AENA.MC', 'AMS.MC', 'ANA.MC', 'BBVA.MC', 'BKT.MC', 'CABK.MC', 'CLNX.MC', 'COL.MC', 'ELE.MC', 'ENG.MC', 'FDR.MC', 'FER.MC', 'GRF.MC', 'IAG.MC', 'IBE.MC', 'IDR.MC', 'ITX.MC', 'LOG.MC']
+2026-08-11 07:51:22,266 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $ACS OR $ACX OR $AENA OR $AMS OR $ANA OR $BBVA OR $BKT OR $CABK OR $CLNX OR $COL OR $ELE OR $ENG OR $FDR OR $FER OR $GRF OR $IAG OR $IBE OR $IDR OR $ITX OR $LOG
+2026-08-11 07:51:22,294 INFO agentic.connectors.fundamentals FallbackFundamentals: 2 tickers -> Finnhub, 33 tickers -> yfinance directo
+2026-08-11 07:51:24,060 DEBUG agentic.connectors.http Cache get fallo (feeds:2bb517c65c5f30d0a320125b): Timeout connecting to server
+2026-08-11 07:51:24,060 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 07:51:24,068 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'A', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 07:51:24,070 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 07:51:24,316 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'A', 'token': '***'} | headers={}
+2026-08-11 07:51:24,322 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 07:51:24,592 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 07:51:24,785 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 07:51:26,547 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AAL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 07:51:26,690 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AAL', 'token': '***'} | headers={}
+2026-08-11 07:51:34,654 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 20
+2026-08-11 07:51:34,661 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 20 items -> 20 posts (vacios=0, sin_mencion=0, fuera_de_ventana=20)
+2026-08-11 07:51:36,270 INFO agentic.connectors.fundamentals Finnhub: 2 ok, 0 fallidos (fallback yfinance)
+2026-08-11 07:51:36,605 INFO agentic.connectors.fundamentals FallbackFundamentals: 0 tickers -> Finnhub, 3 tickers -> yfinance directo
+2026-08-11 07:51:36,969 INFO agentic.connectors.fundamentals Finnhub: 0 ok, 0 fallidos (fallback yfinance)
+2026-08-11 08:01:42,988 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=40): ['MAP.MC', 'MEL.MC', 'MRL.MC', 'MTS.MC', 'NTGY.MC', 'PHM.MC', 'RED.MC', 'REP.MC', 'ROVI.MC', 'SAN.MC', 'SCYR.MC', 'SLR.MC', 'TEF.MC', 'A', 'AAL', 'AAPL', 'ABBV', 'ABNB', 'ABT', 'ACGL']
+2026-08-11 08:01:43,252 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $MAP OR $MEL OR $MRL OR $MTS OR $NTGY OR $PHM OR $RED OR $REP OR $ROVI OR $SAN OR $SCYR OR $SLR OR $TEF OR $A OR $AAL OR $AAPL OR $ABBV OR $ABNB OR $ABT OR $ACGL
+2026-08-11 08:01:43,253 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 08:01:54,191 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 20
+2026-08-11 08:01:54,198 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 20 items -> 20 posts (vacios=0, sin_mencion=0, fuera_de_ventana=20)
+2026-08-11 08:12:12,548 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=60): ['ACN', 'ADBE', 'ADI', 'ADM', 'ADP', 'ADSK', 'AEE', 'AEP', 'AES', 'AFL', 'AIG', 'AIZ', 'AJG', 'AKAM', 'ALB', 'ALGN', 'ALL', 'ALLE', 'AMAT', 'AMCR']
+2026-08-11 08:12:12,733 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $ACN OR $ADBE OR $ADI OR $ADM OR $ADP OR $ADSK OR $AEE OR $AEP OR $AES OR $AFL OR $AIG OR $AIZ OR $AJG OR $AKAM OR $ALB OR $ALGN OR $ALL OR $ALLE OR $AMAT OR $AMCR
+2026-08-11 08:12:12,734 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 08:12:38,064 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 08:12:38,074 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)
+2026-08-11 08:22:35,432 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 08:22:35,627 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 08:22:35,881 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 08:22:36,072 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 08:23:20,290 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=80): ['AMD', 'AME', 'AMGN', 'AMP', 'AMT', 'AMZN', 'ANET', 'AON', 'AOS', 'APA', 'APD', 'APH', 'APTV', 'ARE', 'ATO', 'AVB', 'AVGO', 'AVY', 'AWK', 'AXON']
+2026-08-11 08:23:20,484 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $AMD OR $AME OR $AMGN OR $AMP OR $AMT OR $AMZN OR $ANET OR $AON OR $AOS OR $APA OR $APD OR $APH OR $APTV OR $ARE OR $ATO OR $AVB OR $AVGO OR $AVY OR $AWK OR $AXON
+2026-08-11 08:23:20,485 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 08:23:50,842 WARNING agentic.connectors.http HTTP POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items fallo (intento 1/3): . Reintento en 1.1s
+2026-08-11 08:24:21,695 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 0
+2026-08-11 08:24:21,698 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 0 items -> 0 posts (vacios=0, sin_mencion=0, fuera_de_ventana=0)
+2026-08-11 08:24:57,236 INFO agentic.connectors.fundamentals FallbackFundamentals: 35 tickers -> Finnhub, 0 tickers -> yfinance directo
+2026-08-11 08:24:57,433 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AAPL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:24:57,647 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AAPL', 'token': '***'} | headers={}
+2026-08-11 08:24:59,892 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ABBV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:00,059 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ABBV', 'token': '***'} | headers={}
+2026-08-11 08:25:02,336 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ABNB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:02,467 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ABNB', 'token': '***'} | headers={}
+2026-08-11 08:25:04,696 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ABT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:04,843 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ABT', 'token': '***'} | headers={}
+2026-08-11 08:25:07,130 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ACGL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:07,319 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ACGL', 'token': '***'} | headers={}
+2026-08-11 08:25:09,567 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ACN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:09,835 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ACN', 'token': '***'} | headers={}
+2026-08-11 08:25:12,112 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ADBE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:12,362 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ADBE', 'token': '***'} | headers={}
+2026-08-11 08:25:14,611 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ADI', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:14,774 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ADI', 'token': '***'} | headers={}
+2026-08-11 08:25:17,030 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ADM', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:17,198 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ADM', 'token': '***'} | headers={}
+2026-08-11 08:25:19,470 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ADP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:19,979 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ADP', 'token': '***'} | headers={}
+2026-08-11 08:25:22,259 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ADSK', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:22,468 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ADSK', 'token': '***'} | headers={}
+2026-08-11 08:25:24,749 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AEE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:24,910 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AEE', 'token': '***'} | headers={}
+2026-08-11 08:25:27,154 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AEP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:27,328 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AEP', 'token': '***'} | headers={}
+2026-08-11 08:25:29,635 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AES', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:29,795 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AES', 'token': '***'} | headers={}
+2026-08-11 08:25:32,065 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AFL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:32,234 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AFL', 'token': '***'} | headers={}
+2026-08-11 08:25:34,478 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AIG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:34,657 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AIG', 'token': '***'} | headers={}
+2026-08-11 08:25:36,888 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AIZ', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:37,038 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AIZ', 'token': '***'} | headers={}
+2026-08-11 08:25:39,275 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AJG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:39,448 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AJG', 'token': '***'} | headers={}
+2026-08-11 08:25:41,706 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AKAM', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:41,872 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AKAM', 'token': '***'} | headers={}
+2026-08-11 08:25:44,108 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ALB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:44,385 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ALB', 'token': '***'} | headers={}
+2026-08-11 08:25:46,667 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ALGN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:46,873 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ALGN', 'token': '***'} | headers={}
+2026-08-11 08:25:49,119 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ALL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:49,261 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ALL', 'token': '***'} | headers={}
+2026-08-11 08:25:51,548 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ALLE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:51,763 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ALLE', 'token': '***'} | headers={}
+2026-08-11 08:25:53,998 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMAT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:54,157 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMAT', 'token': '***'} | headers={}
+2026-08-11 08:25:56,546 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMCR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:56,680 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMCR', 'token': '***'} | headers={}
+2026-08-11 08:25:58,924 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:25:59,097 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMD', 'token': '***'} | headers={}
+2026-08-11 08:26:01,364 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AME', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:01,663 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AME', 'token': '***'} | headers={}
+2026-08-11 08:26:03,909 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMGN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:04,059 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMGN', 'token': '***'} | headers={}
+2026-08-11 08:26:06,329 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:06,486 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMP', 'token': '***'} | headers={}
+2026-08-11 08:26:08,735 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:09,009 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMT', 'token': '***'} | headers={}
+2026-08-11 08:26:11,256 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AMZN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:11,402 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AMZN', 'token': '***'} | headers={}
+2026-08-11 08:26:13,633 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ANET', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:13,801 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ANET', 'token': '***'} | headers={}
+2026-08-11 08:26:16,067 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AON', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:16,309 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AON', 'token': '***'} | headers={}
+2026-08-11 08:26:18,613 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AOS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:18,754 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AOS', 'token': '***'} | headers={}
+2026-08-11 08:26:21,083 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'APA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:26:21,547 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'APA', 'token': '***'} | headers={}
+2026-08-11 08:26:23,789 INFO agentic.connectors.fundamentals Finnhub: 35 ok, 0 fallidos (fallback yfinance)
+2026-08-11 08:34:21,715 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=100): ['AXP', 'AZO', 'BA', 'BAC', 'BALL', 'BAX', 'BBY', 'BDX', 'BEN', 'BF.B', 'BIIB', 'BIO', 'BKNG', 'BKR', 'BLDR', 'BLK', 'BMY', 'BR', 'BRK.B', 'BRO']
+2026-08-11 08:34:21,895 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $AXP OR $AZO OR $BA OR $BAC OR $BALL OR $BAX OR $BBY OR $BDX OR $BEN OR $BF OR $BIIB OR $BIO OR $BKNG OR $BKR OR $BLDR OR $BLK OR $BMY OR $BR OR $BRK OR $BRO
+2026-08-11 08:34:21,896 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 08:34:42,630 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 08:34:42,639 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=37)
+2026-08-11 08:44:52,396 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=120): ['BSX', 'BX', 'BXP', 'C', 'CAG', 'CAH', 'CARR', 'CAT', 'CB', 'CBOE', 'CBRE', 'CCI', 'CCL', 'CDNS', 'CDW', 'CE', 'CEG', 'CF', 'CFG', 'CHD']
+2026-08-11 08:44:52,602 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $BSX OR $BX OR $BXP OR $C OR $CAG OR $CAH OR $CARR OR $CAT OR $CB OR $CBOE OR $CBRE OR $CCI OR $CCL OR $CDNS OR $CDW OR $CE OR $CEG OR $CF OR $CFG OR $CHD
+2026-08-11 08:44:52,603 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 08:45:01,669 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 08:45:01,677 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)
+2026-08-11 08:51:47,985 INFO agentic.connectors.fundamentals FallbackFundamentals: 0 tickers -> Finnhub, 1 tickers -> yfinance directo
+2026-08-11 08:51:48,620 INFO agentic.connectors.fundamentals Finnhub: 0 ok, 0 fallidos (fallback yfinance)
+2026-08-11 08:54:57,439 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 08:54:57,633 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 08:54:58,075 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 08:54:58,460 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 08:56:08,933 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=140): ['CHRW', 'CHTR', 'CI', 'CINF', 'CL', 'CLX', 'CMCSA', 'CME', 'CMG', 'CMI', 'CMS', 'CNC', 'CNP', 'COF', 'COO', 'COP', 'COR', 'COST', 'CPAY', 'CPB']
+2026-08-11 08:56:09,135 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $CHRW OR $CHTR OR $CI OR $CINF OR $CL OR $CLX OR $CMCSA OR $CME OR $CMG OR $CMI OR $CMS OR $CNC OR $CNP OR $COF OR $COO OR $COP OR $COR OR $COST OR $CPAY OR $CPB
+2026-08-11 08:56:09,137 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 08:56:16,947 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 08:56:16,954 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=38)
+2026-08-11 08:59:34,014 INFO agentic.connectors.fundamentals FallbackFundamentals: 35 tickers -> Finnhub, 0 tickers -> yfinance directo
+2026-08-11 08:59:34,249 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'APD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:34,884 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'APD', 'token': '***'} | headers={}
+2026-08-11 08:59:37,197 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'APH', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:37,368 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'APH', 'token': '***'} | headers={}
+2026-08-11 08:59:39,607 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'APTV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:39,753 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'APTV', 'token': '***'} | headers={}
+2026-08-11 08:59:42,008 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ARE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:42,168 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ARE', 'token': '***'} | headers={}
+2026-08-11 08:59:44,403 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ATO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:44,617 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ATO', 'token': '***'} | headers={}
+2026-08-11 08:59:46,903 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AVB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:47,067 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AVB', 'token': '***'} | headers={}
+2026-08-11 08:59:49,388 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AVGO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:49,527 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AVGO', 'token': '***'} | headers={}
+2026-08-11 08:59:51,761 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AVY', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:51,979 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AVY', 'token': '***'} | headers={}
+2026-08-11 08:59:54,231 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AWK', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:54,397 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AWK', 'token': '***'} | headers={}
+2026-08-11 08:59:56,658 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AXON', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:56,824 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AXON', 'token': '***'} | headers={}
+2026-08-11 08:59:59,068 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AXP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 08:59:59,248 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AXP', 'token': '***'} | headers={}
+2026-08-11 09:00:01,513 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'AZO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:01,678 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'AZO', 'token': '***'} | headers={}
+2026-08-11 09:00:03,969 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:04,146 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BA', 'token': '***'} | headers={}
+2026-08-11 09:00:06,387 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BAC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:06,560 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BAC', 'token': '***'} | headers={}
+2026-08-11 09:00:08,801 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BALL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:08,998 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BALL', 'token': '***'} | headers={}
+2026-08-11 09:00:11,235 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BAX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:11,432 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BAX', 'token': '***'} | headers={}
+2026-08-11 09:00:13,695 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BBY', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:13,944 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BBY', 'token': '***'} | headers={}
+2026-08-11 09:00:16,225 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BDX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:16,403 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BDX', 'token': '***'} | headers={}
+2026-08-11 09:00:18,821 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BEN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:18,971 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BEN', 'token': '***'} | headers={}
+2026-08-11 09:00:21,242 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BF.B', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:21,394 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BF.B', 'token': '***'} | headers={}
+2026-08-11 09:00:23,685 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BIIB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:24,015 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BIIB', 'token': '***'} | headers={}
+2026-08-11 09:00:26,456 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BIO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:26,643 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BIO', 'token': '***'} | headers={}
+2026-08-11 09:00:28,886 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BKNG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:29,056 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BKNG', 'token': '***'} | headers={}
+2026-08-11 09:00:31,298 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BKR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:31,465 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BKR', 'token': '***'} | headers={}
+2026-08-11 09:00:33,739 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BLDR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:33,902 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BLDR', 'token': '***'} | headers={}
+2026-08-11 09:00:36,155 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BLK', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:36,417 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BLK', 'token': '***'} | headers={}
+2026-08-11 09:00:38,677 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BMY', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:38,862 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BMY', 'token': '***'} | headers={}
+2026-08-11 09:00:41,138 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:41,360 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BR', 'token': '***'} | headers={}
+2026-08-11 09:00:43,661 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BRK.B', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:43,929 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BRK.B', 'token': '***'} | headers={}
+2026-08-11 09:00:46,171 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BRO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:46,644 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BRO', 'token': '***'} | headers={}
+2026-08-11 09:00:48,884 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BSX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:49,147 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BSX', 'token': '***'} | headers={}
+2026-08-11 09:00:51,426 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:51,603 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BX', 'token': '***'} | headers={}
+2026-08-11 09:00:53,842 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'BXP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:54,063 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'BXP', 'token': '***'} | headers={}
+2026-08-11 09:00:56,328 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'C', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:56,512 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'C', 'token': '***'} | headers={}
+2026-08-11 09:00:58,770 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CAG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:00:58,960 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CAG', 'token': '***'} | headers={}
+2026-08-11 09:01:01,252 INFO agentic.connectors.fundamentals Finnhub: 35 ok, 0 fallidos (fallback yfinance)
+2026-08-11 09:06:21,882 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=160): ['CPRT', 'CPT', 'CRL', 'CRM', 'CSCO', 'CSGP', 'CSX', 'CTAS', 'CTSH', 'CTVA', 'CVS', 'CVX', 'CZR', 'D', 'DAL', 'DD', 'DE', 'DECK', 'DG', 'DGX']
+2026-08-11 09:06:22,077 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $CPRT OR $CPT OR $CRL OR $CRM OR $CSCO OR $CSGP OR $CSX OR $CTAS OR $CTSH OR $CTVA OR $CVS OR $CVX OR $CZR OR $D OR $DAL OR $DD OR $DE OR $DECK OR $DG OR $DGX
+2026-08-11 09:06:22,078 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 09:06:28,942 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 09:06:28,951 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=37)
+2026-08-11 09:16:32,697 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=180): ['DHI', 'DHR', 'DIS', 'DLR', 'DLTR', 'DOC', 'DOV', 'DOW', 'DPZ', 'DRI', 'DTE', 'DUK', 'DVA', 'DVN', 'DXCM', 'EA', 'EBAY', 'ECL', 'ED', 'EFX']
+2026-08-11 09:16:32,906 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $DHI OR $DHR OR $DIS OR $DLR OR $DLTR OR $DOC OR $DOV OR $DOW OR $DPZ OR $DRI OR $DTE OR $DUK OR $DVA OR $DVN OR $DXCM OR $EA OR $EBAY OR $ECL OR $ED OR $EFX
+2026-08-11 09:16:32,907 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 09:16:42,342 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 09:16:42,347 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=34)
+2026-08-11 09:26:09,152 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 09:26:09,350 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 09:26:09,880 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 09:26:10,093 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 09:26:45,484 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=200): ['EG', 'EIX', 'EL', 'ELV', 'EMN', 'EMR', 'ENPH', 'EOG', 'EPAM', 'EQIX', 'EQR', 'EQT', 'ES', 'ESS', 'ETN', 'ETR', 'EVRG', 'EW', 'EXC', 'EXPD']
+2026-08-11 09:26:45,685 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $EG OR $EIX OR $EL OR $ELV OR $EMN OR $EMR OR $ENPH OR $EOG OR $EPAM OR $EQIX OR $EQR OR $EQT OR $ES OR $ESS OR $ETN OR $ETR OR $EVRG OR $EW OR $EXC OR $EXPD
+2026-08-11 09:26:45,687 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 09:26:52,304 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 09:26:52,314 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)
+2026-08-11 09:31:52,135 INFO agentic.connectors.fundamentals FallbackFundamentals: 35 tickers -> Finnhub, 0 tickers -> yfinance directo
+2026-08-11 09:31:52,347 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CAH', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:31:52,567 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CAH', 'token': '***'} | headers={}
+2026-08-11 09:31:54,833 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CARR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:31:54,962 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CARR', 'token': '***'} | headers={}
+2026-08-11 09:31:57,208 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CAT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:31:57,368 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CAT', 'token': '***'} | headers={}
+2026-08-11 09:31:59,652 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:31:59,864 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CB', 'token': '***'} | headers={}
+2026-08-11 09:32:02,142 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CBOE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:02,290 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CBOE', 'token': '***'} | headers={}
+2026-08-11 09:32:04,520 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CBRE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:04,703 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CBRE', 'token': '***'} | headers={}
+2026-08-11 09:32:06,942 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CCI', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:07,085 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CCI', 'token': '***'} | headers={}
+2026-08-11 09:32:09,321 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CCL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:09,493 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CCL', 'token': '***'} | headers={}
+2026-08-11 09:32:11,735 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CDNS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:11,902 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CDNS', 'token': '***'} | headers={}
+2026-08-11 09:32:14,146 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CDW', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:14,305 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CDW', 'token': '***'} | headers={}
+2026-08-11 09:32:16,605 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:16,781 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CE', 'token': '***'} | headers={}
+2026-08-11 09:32:19,040 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CEG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:19,175 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CEG', 'token': '***'} | headers={}
+2026-08-11 09:32:21,417 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CF', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:21,597 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CF', 'token': '***'} | headers={}
+2026-08-11 09:32:23,841 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CFG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:23,999 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CFG', 'token': '***'} | headers={}
+2026-08-11 09:32:26,251 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CHD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:26,419 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CHD', 'token': '***'} | headers={}
+2026-08-11 09:32:28,651 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CHRW', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:28,810 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CHRW', 'token': '***'} | headers={}
+2026-08-11 09:32:31,037 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CHTR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:31,174 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CHTR', 'token': '***'} | headers={}
+2026-08-11 09:32:33,430 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CI', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:33,578 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CI', 'token': '***'} | headers={}
+2026-08-11 09:32:35,808 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CINF', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:35,948 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CINF', 'token': '***'} | headers={}
+2026-08-11 09:32:38,182 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:38,395 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CL', 'token': '***'} | headers={}
+2026-08-11 09:32:40,649 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CLX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:40,798 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CLX', 'token': '***'} | headers={}
+2026-08-11 09:32:43,062 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CMCSA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:43,239 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CMCSA', 'token': '***'} | headers={}
+2026-08-11 09:32:45,544 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CME', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:45,689 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CME', 'token': '***'} | headers={}
+2026-08-11 09:32:47,931 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CMG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:48,121 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CMG', 'token': '***'} | headers={}
+2026-08-11 09:32:50,369 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CMI', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:50,575 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CMI', 'token': '***'} | headers={}
+2026-08-11 09:32:52,812 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CMS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:52,968 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CMS', 'token': '***'} | headers={}
+2026-08-11 09:32:55,212 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CNC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:55,376 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CNC', 'token': '***'} | headers={}
+2026-08-11 09:32:57,639 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CNP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:32:57,789 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CNP', 'token': '***'} | headers={}
+2026-08-11 09:33:00,055 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'COF', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:00,190 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'COF', 'token': '***'} | headers={}
+2026-08-11 09:33:02,427 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'COO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:02,586 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'COO', 'token': '***'} | headers={}
+2026-08-11 09:33:04,918 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'COP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:05,165 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'COP', 'token': '***'} | headers={}
+2026-08-11 09:33:07,439 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'COR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:07,583 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'COR', 'token': '***'} | headers={}
+2026-08-11 09:33:09,829 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'COST', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:09,995 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'COST', 'token': '***'} | headers={}
+2026-08-11 09:33:12,232 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CPAY', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:12,413 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CPAY', 'token': '***'} | headers={}
+2026-08-11 09:33:14,638 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CPB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 09:33:14,840 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CPB', 'token': '***'} | headers={}
+2026-08-11 09:33:17,137 INFO agentic.connectors.fundamentals Finnhub: 35 ok, 0 fallidos (fallback yfinance)
+2026-08-11 09:36:55,679 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=220): ['EXPE', 'EXR', 'F', 'FANG', 'FAST', 'FCX', 'FDS', 'FDX', 'FE', 'FFIV', 'FICO', 'FIS', 'FITB', 'FMC', 'FOX', 'FOXA', 'FRT', 'FSLR', 'FTNT', 'FTV']
+2026-08-11 09:36:55,910 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $EXPE OR $EXR OR $F OR $FANG OR $FAST OR $FCX OR $FDS OR $FDX OR $FE OR $FFIV OR $FICO OR $FIS OR $FITB OR $FMC OR $FOX OR $FOXA OR $FRT OR $FSLR OR $FTNT OR $FTV
+2026-08-11 09:36:55,912 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 09:37:04,277 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 09:37:04,286 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)
+2026-08-11 09:47:12,396 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=240): ['GD', 'GE', 'GEHC', 'GEN', 'GEV', 'GILD', 'GIS', 'GL', 'GLW', 'GM', 'GNRC', 'GOOGL', 'GPC', 'GPN', 'GRMN', 'GS', 'GWW', 'HAL', 'HAS', 'HBAN']
+2026-08-11 09:47:12,594 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $GD OR $GE OR $GEHC OR $GEN OR $GEV OR $GILD OR $GIS OR $GL OR $GLW OR $GM OR $GNRC OR $GOOGL OR $GPC OR $GPN OR $GRMN OR $GS OR $GWW OR $HAL OR $HAS OR $HBAN
+2026-08-11 09:47:12,595 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 09:47:18,675 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 09:47:18,684 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=38)
+2026-08-11 09:51:56,581 INFO agentic.connectors.fundamentals FallbackFundamentals: 0 tickers -> Finnhub, 1 tickers -> yfinance directo
+2026-08-11 09:51:57,309 INFO agentic.connectors.fundamentals Finnhub: 0 ok, 0 fallidos (fallback yfinance)
+2026-08-11 09:57:32,463 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 09:57:32,674 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 09:57:33,087 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 09:57:33,324 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 09:59:05,840 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=260): ['HCA', 'HD', 'HIG', 'HII', 'HLT', 'HON', 'HPE', 'HPQ', 'HRL', 'HSIC', 'HST', 'HSY', 'HUBB', 'HUM', 'HWM', 'IBM', 'ICE', 'IDXX', 'IEX', 'IFF']
+2026-08-11 09:59:06,302 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $HCA OR $HD OR $HIG OR $HII OR $HLT OR $HON OR $HPE OR $HPQ OR $HRL OR $HSIC OR $HST OR $HSY OR $HUBB OR $HUM OR $HWM OR $IBM OR $ICE OR $IDXX OR $IEX OR $IFF
+2026-08-11 09:59:06,303 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 09:59:12,966 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 09:59:12,980 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)
+2026-08-11 10:03:48,866 INFO agentic.connectors.fundamentals FallbackFundamentals: 35 tickers -> Finnhub, 0 tickers -> yfinance directo
+2026-08-11 10:03:49,276 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CPRT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:03:49,582 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CPRT', 'token': '***'} | headers={}
+2026-08-11 10:03:51,826 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CPT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:03:51,979 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CPT', 'token': '***'} | headers={}
+2026-08-11 10:03:54,245 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CRL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:03:54,459 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CRL', 'token': '***'} | headers={}
+2026-08-11 10:03:56,690 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CRM', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:03:56,855 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CRM', 'token': '***'} | headers={}
+2026-08-11 10:03:59,089 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CSCO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:03:59,275 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CSCO', 'token': '***'} | headers={}
+2026-08-11 10:04:01,518 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CSGP', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:01,806 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CSGP', 'token': '***'} | headers={}
+2026-08-11 10:04:04,034 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CSX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:04,195 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CSX', 'token': '***'} | headers={}
+2026-08-11 10:04:06,479 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CTAS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:07,135 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CTAS', 'token': '***'} | headers={}
+2026-08-11 10:04:09,494 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CTSH', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:09,653 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CTSH', 'token': '***'} | headers={}
+2026-08-11 10:04:11,891 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CTVA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:12,035 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CTVA', 'token': '***'} | headers={}
+2026-08-11 10:04:14,261 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CVS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:14,466 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CVS', 'token': '***'} | headers={}
+2026-08-11 10:04:16,776 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CVX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:16,940 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CVX', 'token': '***'} | headers={}
+2026-08-11 10:04:19,231 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'CZR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:19,393 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'CZR', 'token': '***'} | headers={}
+2026-08-11 10:04:21,633 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'D', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:21,824 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'D', 'token': '***'} | headers={}
+2026-08-11 10:04:24,066 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DAL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:24,278 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DAL', 'token': '***'} | headers={}
+2026-08-11 10:04:26,517 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:26,659 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DD', 'token': '***'} | headers={}
+2026-08-11 10:04:28,900 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:29,081 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DE', 'token': '***'} | headers={}
+2026-08-11 10:04:31,347 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DECK', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:31,526 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DECK', 'token': '***'} | headers={}
+2026-08-11 10:04:33,772 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:33,969 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DG', 'token': '***'} | headers={}
+2026-08-11 10:04:36,231 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DGX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:36,392 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DGX', 'token': '***'} | headers={}
+2026-08-11 10:04:38,642 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DHI', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:38,781 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DHI', 'token': '***'} | headers={}
+2026-08-11 10:04:41,010 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DHR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:41,294 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DHR', 'token': '***'} | headers={}
+2026-08-11 10:04:43,525 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DIS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:43,707 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DIS', 'token': '***'} | headers={}
+2026-08-11 10:04:45,943 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DLR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:46,101 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DLR', 'token': '***'} | headers={}
+2026-08-11 10:04:48,361 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DLTR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:48,564 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DLTR', 'token': '***'} | headers={}
+2026-08-11 10:04:50,794 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DOC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:50,959 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DOC', 'token': '***'} | headers={}
+2026-08-11 10:04:53,214 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DOV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:53,371 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DOV', 'token': '***'} | headers={}
+2026-08-11 10:04:55,615 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DOW', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:55,763 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DOW', 'token': '***'} | headers={}
+2026-08-11 10:04:57,991 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DPZ', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:04:58,151 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DPZ', 'token': '***'} | headers={}
+2026-08-11 10:05:00,381 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DRI', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:05:00,545 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DRI', 'token': '***'} | headers={}
+2026-08-11 10:05:02,794 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DTE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:05:02,977 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DTE', 'token': '***'} | headers={}
+2026-08-11 10:05:05,227 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DUK', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:05:05,414 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DUK', 'token': '***'} | headers={}
+2026-08-11 10:05:07,635 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DVA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:05:07,809 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DVA', 'token': '***'} | headers={}
+2026-08-11 10:05:10,080 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DVN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:05:10,261 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DVN', 'token': '***'} | headers={}
+2026-08-11 10:05:12,505 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'DXCM', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:05:12,684 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'DXCM', 'token': '***'} | headers={}
+2026-08-11 10:05:14,916 INFO agentic.connectors.fundamentals Finnhub: 35 ok, 0 fallidos (fallback yfinance)
+2026-08-11 10:09:33,448 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=280): ['ILMN', 'INCY', 'INTC', 'INTU', 'INVH', 'IP', 'IQV', 'IR', 'IRM', 'IT', 'ITW', 'IVZ', 'J', 'JBHT', 'JBL', 'JCI', 'JKHY', 'JNJ', 'JPM', 'KDP']
+2026-08-11 10:09:33,895 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $ILMN OR $INCY OR $INTC OR $INTU OR $INVH OR $IP OR $IQV OR $IR OR $IRM OR $IT OR $ITW OR $IVZ OR $J OR $JBHT OR $JBL OR $JCI OR $JKHY OR $JNJ OR $JPM OR $KDP
+2026-08-11 10:09:33,896 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 10:09:40,553 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 10:09:40,568 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=32)
+2026-08-11 10:19:42,975 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=300): ['KEY', 'KEYS', 'KHC', 'KIM', 'KKR', 'KLAC', 'KMB', 'KMI', 'KMX', 'KO', 'KR', 'KVUE', 'L', 'LDOS', 'LEN', 'LH', 'LHX', 'LIN', 'LKQ', 'LLY']
+2026-08-11 10:19:43,323 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $KEY OR $KEYS OR $KHC OR $KIM OR $KKR OR $KLAC OR $KMB OR $KMI OR $KMX OR $KO OR $KR OR $KVUE OR $L OR $LDOS OR $LEN OR $LH OR $LHX OR $LIN OR $LKQ OR $LLY
+2026-08-11 10:19:43,325 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 10:19:50,986 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 10:19:51,001 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=38)
+2026-08-11 10:27:38,074 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 10:27:38,285 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 10:27:38,690 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 10:27:38,891 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 10:30:59,484 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=320): ['LMT', 'LNT', 'LOW', 'LRCX', 'LULU', 'LUV', 'LVS', 'LW', 'LYB', 'LYV', 'MA', 'MAA', 'MAR', 'MAS', 'MCD', 'MCHP', 'MCK', 'MCO', 'MDLZ', 'MDT']
+2026-08-11 10:30:59,947 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $LMT OR $LNT OR $LOW OR $LRCX OR $LULU OR $LUV OR $LVS OR $LW OR $LYB OR $LYV OR $MA OR $MAA OR $MAR OR $MAS OR $MCD OR $MCHP OR $MCK OR $MCO OR $MDLZ OR $MDT
+2026-08-11 10:30:59,949 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 10:31:26,065 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 10:31:26,084 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)
+2026-08-11 10:35:41,471 INFO agentic.connectors.fundamentals FallbackFundamentals: 35 tickers -> Finnhub, 0 tickers -> yfinance directo
+2026-08-11 10:35:41,913 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:42,140 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EA', 'token': '***'} | headers={}
+2026-08-11 10:35:44,383 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EBAY', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:44,539 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EBAY', 'token': '***'} | headers={}
+2026-08-11 10:35:46,789 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ECL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:46,948 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ECL', 'token': '***'} | headers={}
+2026-08-11 10:35:49,217 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ED', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:49,373 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ED', 'token': '***'} | headers={}
+2026-08-11 10:35:51,607 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EFX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:51,775 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EFX', 'token': '***'} | headers={}
+2026-08-11 10:35:54,036 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:54,191 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EG', 'token': '***'} | headers={}
+2026-08-11 10:35:56,434 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EIX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:56,590 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EIX', 'token': '***'} | headers={}
+2026-08-11 10:35:58,864 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:35:59,066 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EL', 'token': '***'} | headers={}
+2026-08-11 10:36:01,356 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ELV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:01,510 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ELV', 'token': '***'} | headers={}
+2026-08-11 10:36:03,752 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EMN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:03,957 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EMN', 'token': '***'} | headers={}
+2026-08-11 10:36:06,234 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EMR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:06,419 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EMR', 'token': '***'} | headers={}
+2026-08-11 10:36:08,681 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ENPH', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:08,839 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ENPH', 'token': '***'} | headers={}
+2026-08-11 10:36:11,090 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EOG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:11,249 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EOG', 'token': '***'} | headers={}
+2026-08-11 10:36:13,484 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EPAM', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:13,622 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EPAM', 'token': '***'} | headers={}
+2026-08-11 10:36:15,856 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EQIX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:16,004 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EQIX', 'token': '***'} | headers={}
+2026-08-11 10:36:18,254 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EQR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:18,423 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EQR', 'token': '***'} | headers={}
+2026-08-11 10:36:20,668 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EQT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:20,849 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EQT', 'token': '***'} | headers={}
+2026-08-11 10:36:23,125 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ES', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:23,288 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ES', 'token': '***'} | headers={}
+2026-08-11 10:36:25,544 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ESS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:25,695 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ESS', 'token': '***'} | headers={}
+2026-08-11 10:36:27,925 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ETN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:28,141 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ETN', 'token': '***'} | headers={}
+2026-08-11 10:36:30,395 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'ETR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:30,616 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'ETR', 'token': '***'} | headers={}
+2026-08-11 10:36:32,864 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EVRG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:33,014 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EVRG', 'token': '***'} | headers={}
+2026-08-11 10:36:35,292 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EW', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:35,442 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EW', 'token': '***'} | headers={}
+2026-08-11 10:36:37,674 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EXC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:37,830 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EXC', 'token': '***'} | headers={}
+2026-08-11 10:36:40,065 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EXPD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:40,241 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EXPD', 'token': '***'} | headers={}
+2026-08-11 10:36:42,487 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EXPE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:42,627 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EXPE', 'token': '***'} | headers={}
+2026-08-11 10:36:44,855 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'EXR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:45,019 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'EXR', 'token': '***'} | headers={}
+2026-08-11 10:36:47,306 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'F', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:47,473 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'F', 'token': '***'} | headers={}
+2026-08-11 10:36:49,726 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FANG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:49,876 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FANG', 'token': '***'} | headers={}
+2026-08-11 10:36:52,117 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FAST', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:52,278 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FAST', 'token': '***'} | headers={}
+2026-08-11 10:36:54,514 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FCX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:54,698 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FCX', 'token': '***'} | headers={}
+2026-08-11 10:36:56,929 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FDS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:57,137 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FDS', 'token': '***'} | headers={}
+2026-08-11 10:36:59,376 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FDX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:36:59,552 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FDX', 'token': '***'} | headers={}
+2026-08-11 10:37:01,788 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:37:01,961 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FE', 'token': '***'} | headers={}
+2026-08-11 10:37:04,233 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FFIV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 10:37:04,401 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FFIV', 'token': '***'} | headers={}
+2026-08-11 10:37:06,631 INFO agentic.connectors.fundamentals Finnhub: 35 ok, 0 fallidos (fallback yfinance)
+2026-08-11 10:41:36,705 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=340): ['META', 'MHK', 'MKC', 'MKTX', 'MLM', 'MMM', 'MNST', 'MO', 'MOH', 'MOS', 'MPC', 'MPWR', 'MRK', 'MRNA', 'MS', 'MSCI', 'MSFT', 'MSI', 'MTB', 'MTCH']
+2026-08-11 10:41:37,145 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $META OR $MHK OR $MKC OR $MKTX OR $MLM OR $MMM OR $MNST OR $MO OR $MOH OR $MOS OR $MPC OR $MPWR OR $MRK OR $MRNA OR $MS OR $MSCI OR $MSFT OR $MSI OR $MTB OR $MTCH
+2026-08-11 10:41:37,147 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 10:41:46,378 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 10:41:46,398 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=28)
+2026-08-11 10:51:53,578 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=360): ['MTD', 'MU', 'NCLH', 'NDAQ', 'NDSN', 'NEE', 'NEM', 'NFLX', 'NI', 'NKE', 'NOC', 'NOW', 'NRG', 'NSC', 'NTAP', 'NTRS', 'NUE', 'NVDA', 'NVR', 'NWS']
+2026-08-11 10:51:54,073 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $MTD OR $MU OR $NCLH OR $NDAQ OR $NDSN OR $NEE OR $NEM OR $NFLX OR $NI OR $NKE OR $NOC OR $NOW OR $NRG OR $NSC OR $NTAP OR $NTRS OR $NUE OR $NVDA OR $NVR OR $NWS
+2026-08-11 10:51:54,076 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 10:52:02,995 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 10:52:03,011 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=7)
+2026-08-11 10:57:58,181 DEBUG agentic.connectors.http API call: GET https://newsapi.org/v2/everything | params={'q': 'noticias OR news', 'domains': 'elpais.com,expansion.com,eleconomista.es,elconfidencial.com,bloomberg.com,reuters.com, wsj.com,ft.com,cnbc.com', 'from': '2026-08-10T00:00:00+00:00', 'sortBy': 'publishedAt', 'pageSize': 100, 'apiKey': '***'} | headers={}
+2026-08-11 10:57:58,398 DEBUG agentic.connectors.http API call: GET https://api.marketaux.com/v1/news/all | params={'published_after': '2026-08-10T00:00', 'api_token': '5oHFCyney7GqKiBWc7XWdc44X8yYpYC3gfCV4TtO', 'symbols': 'ACS,ACX,AENA,AMS,ANA,BBVA,BKT,CABK,CLNX,COL,ELE,ENG,FDR,FER,GRF,IAG,IBE,IDR,ITX,LOG'} | headers={}
+2026-08-11 10:57:58,699 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/news | params={'category': 'general', 'minId': 0, 'token': '***'} | headers={}
+2026-08-11 10:57:58,910 DEBUG agentic.connectors.http API call: GET https://www.alphavantage.co/query | params={'function': 'NEWS_SENTIMENT', 'apikey': '***', 'time_from': '20260810T0000', 'sort': 'LATEST', 'limit': 50} | headers={}
+2026-08-11 11:02:08,505 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=380): ['NWSA', 'NXPI', 'O', 'ODFL', 'OKE', 'OMC', 'ON', 'ORCL', 'OTIS', 'OXY', 'PANW', 'PAYC', 'PAYX', 'PCAR', 'PCG', 'PEG', 'PEP', 'PFE', 'PFG', 'PG']
+2026-08-11 11:02:08,915 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $NWSA OR $NXPI OR $O OR $ODFL OR $OKE OR $OMC OR $ON OR $ORCL OR $OTIS OR $OXY OR $PANW OR $PAYC OR $PAYX OR $PCAR OR $PCG OR $PEG OR $PEP OR $PFE OR $PFG OR $PG
+2026-08-11 11:02:08,917 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 11:02:17,752 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 11:02:17,771 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=35)
+2026-08-11 11:07:20,698 INFO agentic.connectors.fundamentals FallbackFundamentals: 35 tickers -> Finnhub, 0 tickers -> yfinance directo
+2026-08-11 11:07:21,079 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FICO', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:21,315 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FICO', 'token': '***'} | headers={}
+2026-08-11 11:07:23,540 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FIS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:23,728 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FIS', 'token': '***'} | headers={}
+2026-08-11 11:07:25,971 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FITB', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:26,122 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FITB', 'token': '***'} | headers={}
+2026-08-11 11:07:28,349 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FMC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:28,552 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FMC', 'token': '***'} | headers={}
+2026-08-11 11:07:30,793 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FOX', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:31,057 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FOX', 'token': '***'} | headers={}
+2026-08-11 11:07:33,281 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FOXA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:33,420 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FOXA', 'token': '***'} | headers={}
+2026-08-11 11:07:35,649 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FRT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:35,820 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FRT', 'token': '***'} | headers={}
+2026-08-11 11:07:38,052 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FSLR', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:38,212 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FSLR', 'token': '***'} | headers={}
+2026-08-11 11:07:40,452 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FTNT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:40,608 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FTNT', 'token': '***'} | headers={}
+2026-08-11 11:07:42,841 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'FTV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:42,972 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'FTV', 'token': '***'} | headers={}
+2026-08-11 11:07:45,196 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:45,376 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GD', 'token': '***'} | headers={}
+2026-08-11 11:07:47,620 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GE', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:47,790 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GE', 'token': '***'} | headers={}
+2026-08-11 11:07:50,022 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GEHC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:50,186 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GEHC', 'token': '***'} | headers={}
+2026-08-11 11:07:52,430 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GEN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:52,595 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GEN', 'token': '***'} | headers={}
+2026-08-11 11:07:54,853 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GEV', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:55,031 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GEV', 'token': '***'} | headers={}
+2026-08-11 11:07:57,276 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GILD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:57,445 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GILD', 'token': '***'} | headers={}
+2026-08-11 11:07:59,679 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GIS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:07:59,864 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GIS', 'token': '***'} | headers={}
+2026-08-11 11:08:02,141 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:02,307 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GL', 'token': '***'} | headers={}
+2026-08-11 11:08:04,559 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GLW', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:04,744 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GLW', 'token': '***'} | headers={}
+2026-08-11 11:08:06,991 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GM', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:07,130 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GM', 'token': '***'} | headers={}
+2026-08-11 11:08:09,364 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GNRC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:09,515 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GNRC', 'token': '***'} | headers={}
+2026-08-11 11:08:11,738 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GOOGL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:11,911 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GOOGL', 'token': '***'} | headers={}
+2026-08-11 11:08:14,148 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GPC', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:14,350 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GPC', 'token': '***'} | headers={}
+2026-08-11 11:08:16,574 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GPN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:16,724 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GPN', 'token': '***'} | headers={}
+2026-08-11 11:08:18,957 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GRMN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:19,138 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GRMN', 'token': '***'} | headers={}
+2026-08-11 11:08:21,383 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:21,543 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GS', 'token': '***'} | headers={}
+2026-08-11 11:08:23,789 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'GWW', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:23,968 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'GWW', 'token': '***'} | headers={}
+2026-08-11 11:08:26,221 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HAL', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:26,391 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HAL', 'token': '***'} | headers={}
+2026-08-11 11:08:28,623 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HAS', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:28,792 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HAS', 'token': '***'} | headers={}
+2026-08-11 11:08:31,043 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HBAN', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:31,184 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HBAN', 'token': '***'} | headers={}
+2026-08-11 11:08:33,429 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HCA', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:33,587 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HCA', 'token': '***'} | headers={}
+2026-08-11 11:08:35,810 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HD', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:35,979 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HD', 'token': '***'} | headers={}
+2026-08-11 11:08:38,205 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HIG', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:38,356 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HIG', 'token': '***'} | headers={}
+2026-08-11 11:08:40,607 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HII', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:40,754 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HII', 'token': '***'} | headers={}
+2026-08-11 11:08:42,986 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/metric | params={'symbol': 'HLT', 'metric': 'all', 'token': '***'} | headers={}
+2026-08-11 11:08:43,119 DEBUG agentic.connectors.http API call: GET https://finnhub.io/api/v1/stock/profile2 | params={'symbol': 'HLT', 'token': '***'} | headers={}
+2026-08-11 11:08:45,366 INFO agentic.connectors.fundamentals Finnhub: 35 ok, 0 fallidos (fallback yfinance)
+2026-08-11 11:12:28,078 INFO agentic.connectors.apify_social Apify Twitter: lote de 20/506 tickers este ciclo (proximo offset=400): ['PGR', 'PH', 'PHM', 'PKG', 'PLD', 'PM', 'PNC', 'PNR', 'PNW', 'PODD', 'POOL', 'PPG', 'PPL', 'PRU', 'PSA', 'PSX', 'PTC', 'PWR', 'PYPL', 'QCOM']
+2026-08-11 11:12:28,509 INFO agentic.connectors.apify_social Apify Twitter: 20 cashtags en un run: $PGR OR $PH OR $PHM OR $PKG OR $PLD OR $PM OR $PNC OR $PNR OR $PNW OR $PODD OR $POOL OR $PPG OR $PPL OR $PRU OR $PSA OR $PSX OR $PTC OR $PWR OR $PYPL OR $QCOM
+2026-08-11 11:12:28,511 DEBUG agentic.connectors.http API call: POST https://api.apify.com/v2/acts/danek~twitter-scraper/run-sync-get-dataset-items | params={} | headers={'Authorization': '***'}
+2026-08-11 11:12:35,630 INFO agentic.connectors.apify_social Apify Twitter: respuesta recibida, tipo: <class 'list'>, items: 39
+2026-08-11 11:12:35,649 INFO agentic.connectors.apify_social Apify Twitter [20 cashtags]: 39 items -> 39 posts (vacios=0, sin_mencion=0, fuera_de_ventana=39)

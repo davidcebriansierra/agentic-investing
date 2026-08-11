@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentic-app
+  namespace: agentic-investing
+  labels:
+    app: agentic-app
+spec:
+  selector:
+    app: agentic-app
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: metrics
+  type: ClusterIP

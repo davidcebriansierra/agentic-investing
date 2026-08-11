@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sistema Agéntico de Inversión — Arquitectura</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#121a30; --panel:#162038; --panel2:#1d2a48;
+    --line:#2c3a5e; --txt:#e8edf7; --muted:#9fb0d0; --accent:#ec0000;
+    --accent2:#16c7a7; --accent3:#f5a623; --accent4:#5b8def; --ok:#22c55e;
+    --bad:#ef4444; --warn:#f5a623; --shadow:0 8px 28px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 80% -10%, #1a2b4d 0, transparent 60%),
+               linear-gradient(160deg,#0b1020,#0e1530 60%,#0b1020);
+    color:var(--txt); font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    min-height:100vh;
+  }
+  header{
+    padding:22px 28px 8px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(236,0,0,.10),transparent);
+  }
+  header h1{margin:0;font-size:22px;letter-spacing:.3px}
+  header h1 span{color:var(--accent)}
+  header p{margin:6px 0 0;color:var(--muted);font-size:13.5px;max-width:920px}
+  .tabs{display:flex;gap:8px;padding:14px 28px 0;flex-wrap:wrap}
+  .tab{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:10px 16px;border-radius:10px 10px 0 0;cursor:pointer;font-size:14px;
+    font-weight:600;transition:.18s;border-bottom:none;
+  }
+  .tab:hover{color:var(--txt);background:var(--panel2)}
+  .tab.active{color:#fff;background:var(--panel2);box-shadow:inset 0 3px 0 var(--accent)}
+  .view{display:none;padding:22px 28px 60px}
+  .view.active{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 18px;color:var(--muted);font-size:12.5px}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+  /* ===== diagram (logical + infra) ===== */
+  .diagram-wrap{position:relative}
+  svg.connectors{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  .layer{position:relative;z-index:1;margin-bottom:30px}
+  .layer-title{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:0 0 10px;font-weight:700}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .node{
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:150px;
+    box-shadow:var(--shadow);position:relative;transition:.2s;flex:1 1 160px;max-width:230px;
+  }
+  .node:hover{transform:translateY(-3px);border-color:var(--accent2)}
+  .node .ic{font-size:18px;margin-bottom:4px}
+  .node h4{margin:0 0 3px;font-size:14px}
+  .node p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.45}
+  .node .tag{position:absolute;top:-9px;right:10px;font-size:9.5px;background:var(--accent);
+    color:#fff;padding:2px 7px;border-radius:20px;font-weight:700;letter-spacing:.4px}
+  .node.acc2{border-color:#1f5a4f}.node.acc2 .tag{background:var(--accent2)}
+  .node.acc3 .tag{background:var(--accent3);color:#1b1b1b}
+  .node.acc4 .tag{background:var(--accent4)}
+
+  .grid-infra{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:26px;align-items:center;position:relative;z-index:1}
+  .col-title{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:0 0 10px;text-align:center;font-weight:700}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .hub{
+    background:radial-gradient(circle at 50% 30%,#23335c,#141d35);
+    border:1.5px solid var(--accent);border-radius:16px;padding:18px;text-align:center;box-shadow:0 0 30px rgba(236,0,0,.25)
+  }
+  .hub h3{margin:0 0 4px}
+  .hub small{color:var(--muted)}
+  .port{display:inline-block;font-size:10.5px;background:#0c1428;border:1px solid var(--line);
+    color:var(--accent2);padding:1px 7px;border-radius:6px;margin-top:6px;font-family:Consolas,monospace}
+
+  /* ===== animation view ===== */
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+  .btn{background:var(--accent);color:#fff;border:none;padding:9px 16px;border-radius:9px;
+    font-weight:700;cursor:pointer;font-size:13.5px;transition:.15s}
+  .btn:hover{filter:brightness(1.1)} .btn.sec{background:var(--panel2);border:1px solid var(--line)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  select,input[type=range]{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-size:13px}
+  label.lbl{font-size:12.5px;color:var(--muted)}
+
+  .pipeline{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:8px 0 20px}
+  .pstep{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;
+    width:135px;text-align:center;position:relative;transition:.3s;opacity:.55
+  }
+  .pstep .ic{font-size:22px}
+  .pstep h4{margin:7px 0 3px;font-size:12.5px}
+  .pstep p{margin:0;font-size:10px;color:var(--muted)}
+  .pstep.active{opacity:1;border-color:var(--accent);box-shadow:0 0 22px rgba(236,0,0,.4);transform:translateY(-4px)}
+  .pstep.done{opacity:1;border-color:var(--accent2)}
+  .pstep.skip{opacity:.25;filter:grayscale(.6)}
+  .pstep .badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:9px;
+    padding:2px 8px;border-radius:20px;font-weight:700;display:none}
+  .pstep.done .badge.okb{display:block;background:var(--ok);color:#04210f}
+  .pstep.fail .badge.failb{display:block;background:var(--bad);color:#2a0707}
+  .pstep.fail{opacity:1;border-color:var(--bad);box-shadow:0 0 22px rgba(239,68,68,.4)}
+  .arrow{display:flex;align-items:center;color:var(--line);font-size:20px;padding:0 4px}
+  .arrow.lit{color:var(--accent2);animation:pulse .8s infinite}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  .stage-bottom{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .panel h3{margin:0 0 12px;font-size:14px;color:var(--txt)}
+  .log{height:230px;overflow:auto;font-family:Consolas,monospace;font-size:12px;line-height:1.7}
+  .log .ln{padding:3px 8px;border-left:3px solid var(--line);margin-bottom:3px;animation:slidein .3s ease}
+  .log .ln.in{border-color:var(--accent4)} .log .ln.ok{border-color:var(--ok)}
+  .log .ln.warn{border-color:var(--warn)} .log .ln.bad{border-color:var(--bad)}
+  .log .ln .t{color:var(--muted)}
+  @keyframes slidein{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+  .artifact{font-family:Consolas,monospace;font-size:12px;background:#0a1124;border:1px solid var(--line);
+    border-radius:8px;padding:12px;white-space:pre-wrap;color:var(--accent2);min-height:200px}
+  .verdict{margin-top:14px;padding:14px;border-radius:10px;font-weight:700;text-align:center;font-size:15px;display:none}
+  .verdict.show{display:block;animation:fade .4s}
+  .verdict.op{background:rgba(34,197,94,.15);border:1px solid var(--ok);color:#7ef0a8}
+  .verdict.noop{background:rgba(239,68,68,.13);border:1px solid var(--bad);color:#ff9a9a}
+  .foot{color:var(--muted);font-size:11.5px;margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:20px;
+    padding:3px 10px;font-size:11px;margin:2px;color:var(--muted)}
+
+  /* ===== project structure tree ===== */
+  .struct-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .struct-tools input[type=text]{min-width:280px}
+  .struct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+  .scard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+  .scard .n{font-size:22px;font-weight:800;color:var(--accent2)}
+  .scard .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+  .tree{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:13px}
+  .tree details{margin:2px 0 2px 6px;border-left:1px dashed var(--line);padding-left:12px}
+  .tree>details{border-left:none;padding-left:0;margin-left:0}
+  .tree summary{cursor:pointer;font-weight:700;color:var(--accent3);padding:5px 0;list-style:none;outline:none;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tree summary::-webkit-details-marker{display:none}
+  .tree summary::before{content:"📁";font-size:14px}
+  .tree details[open]>summary::before{content:"📂"}
+  .tree summary .fd{font-weight:400;color:var(--muted);font-size:11.5px}
+  .fitem{display:flex;gap:12px;align-items:baseline;padding:3px 0 3px 24px;position:relative}
+  .fitem::before{content:"";position:absolute;left:6px;top:12px;width:12px;height:1px;background:var(--line)}
+  .fitem .fn{font-family:Consolas,monospace;color:var(--accent2);min-width:215px;flex-shrink:0;font-size:12.5px}
+  .fitem .fd{color:var(--muted);font-size:12px;line-height:1.45}
+  .fitem.hide,.tree details.hide{display:none}
+  .badge-count{font-size:10px;background:var(--panel2);border:1px solid var(--line);border-radius:20px;
+    padding:1px 8px;color:var(--muted);font-weight:600}
+  mark{background:var(--accent3);color:#1b1b1b;border-radius:3px;padding:0 2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sistema Agéntico de Inversión <span>· Arquitectura</span></h1>
+  <p>Visualización interactiva de la arquitectura lógica, la infraestructura de despliegue y el flujo de decisión
+     (ingesta → agregación → filtro de riesgo → evaluación → decisión → HITL → ejecución → monitorización).
+     Sistema validado en runtime PAPER (IB Gateway 4002 · DeepSeek v4-flash · agosto 2026).
+     Documento autocontenido (sin dependencias externas).</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-view="logica">Arquitectura lógica</div>
+  <div class="tab" data-view="infra">Infraestructura</div>
+  <div class="tab" data-view="flujo">Funcionamiento (animación)</div>
+  <div class="tab" data-view="estructura">Estructura del proyecto</div>
+</div>
+
+<!-- ============ LÓGICA ============ -->
+<section class="view active" id="logica">
+  <div class="legend">
+    <span><i style="background:var(--accent)"></i>Ingesta &amp; Núcleo</span>
+    <span><i style="background:var(--accent2)"></i>Memoria / Datos</span>
+    <span><i style="background:var(--accent3)"></i>Gobierno / HITL</span>
+    <span><i style="background:var(--accent4)"></i>Plataforma transversal</span>
+  </div>
+  <div class="diagram-wrap" id="logicWrap">
+    <svg class="connectors" id="logicSvg"></svg>
+
+    <div class="layer">
+      <p class="layer-title">1 · Ingesta — Buscadores (asíncronos, programados)</p>
+      <div class="row" id="L1">
+        <div class="node" id="n-tech"><span class="tag">searcher</span><div class="ic">📈</div><h4>Technical</h4><p>Rupturas, momentum, volumen.</p></div>
+        <div class="node" id="n-fund"><span class="tag">searcher</span><div class="ic">📊</div><h4>Fundamental</h4><p>Resultados, ratios, guidance.</p></div>
+        <div class="node" id="n-news"><span class="tag">searcher</span><div class="ic">📰</div><h4>News</h4><p>NewsAPI, Finnhub, Marketaux.</p></div>
+        <div class="node" id="n-social"><span class="tag">searcher</span><div class="ic">💬</div><h4>Social</h4><p>Reddit, StockTwits.</p></div>
+        <div class="node" id="n-cross"><span class="tag">searcher</span><div class="ic">🌐</div><h4>Cross-Market</h4><p>Correlaciones, ADRs, FX.</p></div>
+        <div class="node" id="n-pre"><span class="tag">searcher</span><div class="ic">🌅</div><h4>Premarket</h4><p>Gaps y pre-apertura.</p></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <p class="layer-title">2 · Núcleo de decisión (determinístico)</p>
+      <div class="row" id="L2">
+        <div class="node" id="n-agg"><span class="tag">core</span><div class="ic">🧩</div><h4>Aggregator</h4><p>Deduplica y consolida oportunidades.</p></div>
+        <div class="node" id="n-risk"><span class="tag">core</span><div class="ic">🛡️</div><h4>Risk Filter</h4><p>Exposición, correlación, límites.</p></div>
+        <div class="node" id="n-eval"><span class="tag">core</span><div class="ic">⚖️</div><h4>Evaluators ×4</h4><p>Conservador, moderado, agresivo, sensacionalista.</p></div>
+        <div class="node" id="n-dec"><span class="tag">core</span><div class="ic">🎯</div><h4>Decisor</h4><p>Consenso ponderado + expectancy.</p></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <p class="layer-title">3 · Gobierno &amp; Humano en el bucle</p>
+      <div class="row" id="L3">
+        <div class="node acc3" id="n-val"><span class="tag">gov</span><div class="ic">✔️</div><h4>Pre-Trade Validator</h4><p>Mercado abierto, capital, precio.</p></div>
+        <div class="node acc3" id="n-kill"><span class="tag">gov</span><div class="ic">🛑</div><h4>Kill Switch</h4><p>Drawdown, pérdidas, anomalías.</p></div>
+        <div class="node acc3" id="n-audit"><span class="tag">gov</span><div class="ic">🧾</div><h4>Audit Logger</h4><p>Trazabilidad inmutable.</p></div>
+        <div class="node acc3" id="n-hitl"><span class="tag">HITL</span><div class="ic">📱</div><h4>Telegram</h4><p>Aprobación humana (TTL 5&nbsp;min). PAUSE_1H → kill switch.</p></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <p class="layer-title">4 · Ejecución &amp; Seguimiento</p>
+      <div class="row" id="L4">
+        <div class="node" id="n-exec"><span class="tag">agent</span><div class="ic">⚡</div><h4>Executor</h4><p>Bracket orders (entrada+TP+SL).</p></div>
+        <div class="node" id="n-mon"><span class="tag">agent</span><div class="ic">📡</div><h4>Monitor</h4><p>Seguimiento de posiciones y P&amp;L.</p></div>
+        <div class="node acc2" id="n-mem"><span class="tag">memory</span><div class="ic">🧠</div><h4>Memoria episódica</h4><p>Calibra win-prob y expectancy.</p></div>
+      </div>
+    </div>
+
+    <div class="layer">
+      <p class="layer-title">5 · Plataforma transversal</p>
+      <div class="row" id="L5">
+        <div class="node acc4" id="n-sched"><span class="tag">infra</span><div class="ic">⏱️</div><h4>Scheduler</h4><p>APScheduler / SimpleScheduler.</p></div>
+        <div class="node acc4" id="n-bus"><span class="tag">infra</span><div class="ic">🔀</div><h4>Stream Bus</h4><p>Redis Streams.</p></div>
+        <div class="node acc2" id="n-db"><span class="tag">infra</span><div class="ic">🗄️</div><h4>Persistencia</h4><p>Postgres / TimescaleDB.</p></div>
+        <div class="node acc2" id="n-vec"><span class="tag">infra</span><div class="ic">🔎</div><h4>Vector store</h4><p>Qdrant (recall semántico).</p></div>
+        <div class="node acc4" id="n-llm"><span class="tag">infra</span><div class="ic">🤖</div><h4>LLM</h4><p>OpenAI / Anthropic / Azure.</p></div>
+        <div class="node acc4" id="n-obs"><span class="tag">infra</span><div class="ic">📊</div><h4>Observabilidad</h4><p>Prometheus + Grafana.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INFRA ============ -->
+<section class="view" id="infra">
+  <div class="legend">
+    <span><i style="background:var(--accent)"></i>Aplicación</span>
+    <span><i style="background:var(--accent2)"></i>Almacenes de datos</span>
+    <span><i style="background:var(--accent4)"></i>Servicios externos</span>
+    <span><i style="background:var(--accent3)"></i>Observabilidad</span>
+  </div>
+  <div class="diagram-wrap" id="infraWrap">
+    <svg class="connectors" id="infraSvg"></svg>
+    <div class="grid-infra">
+      <div>
+        <p class="col-title">Almacenes de datos (contenedores)</p>
+        <div class="stack">
+          <div class="node acc2" id="i-pg"><div class="ic">🐘</div><h4>PostgreSQL / TimescaleDB</h4><p>Eventos append-only, series temporales.</p><span class="port">:5432</span></div>
+          <div class="node acc2" id="i-redis"><div class="ic">🧵</div><h4>Redis Streams</h4><p>Bus de mensajería entre agentes.</p><span class="port">:6379</span></div>
+          <div class="node acc2" id="i-qdrant"><div class="ic">🔎</div><h4>Qdrant</h4><p>Base vectorial (memoria semántica).</p><span class="port">:6333</span></div>
+        </div>
+      </div>
+      <div>
+        <p class="col-title">Núcleo</p>
+        <div class="hub" id="i-app">
+          <div class="ic" style="font-size:30px">🧠</div>
+          <h3>Agentic App</h3>
+          <small>Orquestador + agentes (Python 3.11, asyncio)</small><br>
+          <span class="port">/metrics :8000</span>
+        </div>
+        <p class="col-title" style="margin-top:24px">Observabilidad</p>
+        <div class="stack">
+          <div class="node acc3" id="i-prom"><div class="ic">📈</div><h4>Prometheus</h4><p>Scrape de métricas.</p><span class="port">:9090</span></div>
+          <div class="node acc3" id="i-graf"><div class="ic">📊</div><h4>Grafana</h4><p>Dashboards (overview).</p><span class="port">:3000</span></div>
+        </div>
+      </div>
+      <div>
+        <p class="col-title">Servicios externos</p>
+        <div class="stack">
+          <div class="node acc4" id="i-ib"><div class="ic">🏦</div><h4>IB Gateway / TWS</h4><p>Broker (ib_async / MCP).</p><span class="port">:4002 paper</span></div>
+          <div class="node acc4" id="i-llm"><div class="ic">🤖</div><h4>Proveedores LLM</h4><p>OpenAI / Anthropic / Azure.</p><span class="port">HTTPS</span></div>
+          <div class="node acc4" id="i-apis"><div class="ic">📰</div><h4>APIs de datos</h4><p>NewsAPI, Finnhub, Reddit…</p><span class="port">HTTPS</span></div>
+          <div class="node acc4" id="i-tg"><div class="ic">📱</div><h4>Telegram</h4><p>Bot HITL (aprobaciones).</p><span class="port">HTTPS</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="foot">
+    Orquestación: <b>Docker Compose</b> (desarrollo) y <b>Kubernetes</b> (<code>infra/k8s/</code>, namespace
+    <code>agentic-investing</code>) en producción. Secretos vía <b>Vault / AWS Secrets Manager</b>.
+    <span class="pill">PAPER → LIVE</span><span class="pill">Kill switch</span><span class="pill">No-operar por defecto</span>
+  </p>
+</section>
+
+<!-- ============ FLUJO ============ -->
+<section class="view" id="flujo">
+  <div class="controls">
+    <button class="btn" id="play">▶ Reproducir</button>
+    <button class="btn sec" id="step">⏭ Paso</button>
+    <button class="btn sec" id="reset">↺ Reiniciar</button>
+    <label class="lbl">Escenario:</label>
+    <select id="scenario">
+      <option value="approved">✅ Operación aprobada y ejecutada (heurística)</option>
+      <option value="llm">🤖 Modo LLM (arun) · evaluación concurrente</option>
+      <option value="risk">🛡️ Rechazada por el Risk Filter</option>
+      <option value="consensus">🤝 Sin consenso del Decisor</option>
+      <option value="validator">✋ Pre-Trade Validator bloquea (mercado cerrado)</option>
+      <option value="timeout">📱 HITL sin respuesta (timeout)</option>
+      <option value="pause">⏸ HITL Pausar 1h → kill switch</option>
+      <option value="partial">🧩 Ejecución parcial (PARTIAL fill)</option>
+      <option value="killswitch">🛑 Kill switch activo</option>
+    </select>
+    <label class="lbl">Velocidad</label>
+    <input type="range" id="speed" min="400" max="2200" value="1200" step="100" />
+  </div>
+
+  <div class="pipeline" id="pipeline"></div>
+
+  <div class="stage-bottom">
+    <div class="panel">
+      <h3>📜 Registro de eventos</h3>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="panel">
+      <h3>📦 Artefacto en curso</h3>
+      <div class="artifact" id="artifact">// Pulsa «Reproducir» para iniciar el flujo…</div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+  </div>
+  <p class="foot">El flujo refleja el orden real del orquestador <code>src/graph/pipeline.py</code>
+     (<code>run</code>/<code>arun</code>): <b>aggregate → risk_filter → evaluate → decide → hitl → execute → monitor</b>.</p>
+</section>
+
+<!-- ============ ESTRUCTURA ============ -->
+<section class="view" id="estructura">
+  <div class="struct-grid">
+    <div class="scard"><div class="n">14</div><div class="l">Paquetes en src</div></div>
+    <div class="scard"><div class="n">12</div><div class="l">Esquemas Pydantic</div></div>
+    <div class="scard"><div class="n">6 + 4</div><div class="l">Searchers + Evaluators</div></div>
+    <div class="scard"><div class="n">6</div><div class="l">Conectores externos</div></div>
+    <div class="scard"><div class="n">19</div><div class="l">Ficheros de test</div></div>
+    <div class="scard"><div class="n">11</div><div class="l">Métricas Prometheus</div></div>
+  </div>
+
+  <div class="struct-tools">
+    <input type="text" id="treeSearch" placeholder="🔎 Filtrar ficheros o descripciones…" />
+    <button class="btn sec" id="expandAll">Expandir todo</button>
+    <button class="btn sec" id="collapseAll">Colapsar todo</button>
+  </div>
+
+  <div class="tree" id="tree">
+    <details open>
+      <summary>agentic-investing <span class="fd">— raíz del proyecto TFM</span></summary>
+
+      <div class="fitem"><span class="fn">README.md</span><span class="fd">Documentación principal: instalación, uso, despliegue, testing y roadmap.</span></div>
+      <div class="fitem"><span class="fn">pyproject.toml</span><span class="fd">Metadatos del paquete y dependencias con extras: <code>connectors</code>, <code>llm</code>, <code>infra</code>.</span></div>
+      <div class="fitem"><span class="fn">requirements-dev.txt</span><span class="fd">Dependencias mínimas para ejecutar la batería de tests.</span></div>
+      <div class="fitem"><span class="fn">Makefile</span><span class="fd">Targets <code>venv</code>, <code>install</code>, <code>test</code>, <code>coverage</code>, <code>clean</code>.</span></div>
+      <div class="fitem"><span class="fn">docker-compose.yml</span><span class="fd">Pila local: Postgres/TimescaleDB, Redis, Qdrant, Prometheus, Grafana y la app.</span></div>
+      <div class="fitem"><span class="fn">.env.example</span><span class="fd">Plantilla de variables de entorno y credenciales (IBKR, LLM, APIs, infra).</span></div>
+      <div class="fitem"><span class="fn">.gitignore / .dockerignore</span><span class="fd">Exclusiones de control de versiones y de la imagen Docker.</span></div>
+
+      <details>
+        <summary>config/ <span class="fd">— configuración y prompts versionados</span></summary>
+        <div class="fitem"><span class="fn">config.yaml</span><span class="fd">Config general: mercados, frecuencias de buscadores, HITL, LLM, monitorización.</span></div>
+        <div class="fitem"><span class="fn">risk_limits.yaml</span><span class="fd">Límites de riesgo (exposición, correlación, stop-loss) y disparadores del kill switch.</span></div>
+        <div class="fitem"><span class="fn">decisor_weights.yaml</span><span class="fd">Pesos del consenso ponderado y umbrales de decisión.</span></div>
+        <details>
+          <summary>prompts/ <span class="fd">— prompts de LLM con frontmatter/versión</span></summary>
+          <div class="fitem"><span class="fn">evaluators/conservative.md</span><span class="fd">Prompt del evaluador conservador.</span></div>
+          <div class="fitem"><span class="fn">evaluators/moderate.md</span><span class="fd">Prompt del evaluador moderado.</span></div>
+          <div class="fitem"><span class="fn">evaluators/high_risk.md</span><span class="fd">Prompt del evaluador agresivo.</span></div>
+          <div class="fitem"><span class="fn">evaluators/sensationalist.md</span><span class="fd">Prompt del evaluador sensacionalista.</span></div>
+          <div class="fitem"><span class="fn">searchers/technical.md</span><span class="fd">Prompt del buscador técnico.</span></div>
+        </details>
+      </details>
+
+      <details>
+        <summary>docs/ <span class="fd">— documentación complementaria</span></summary>
+        <div class="fitem"><span class="fn">arquitectura.html</span><span class="fd">Este documento interactivo (arquitectura, infra, animación y estructura).</span></div>
+        <div class="fitem"><span class="fn">diagrama_implementado.html</span><span class="fd">Estado de implementación por componente (verde/amarillo/gris) con KPIs y sidebar de pendientes.</span></div>
+        <div class="fitem"><span class="fn">cableado_conectores_reales.md</span><span class="fd">Guía paso a paso para cablear IBKR, noticias/redes, Telegram, LLM y persistencia.</span></div>
+        <div class="fitem"><span class="fn">tradingagents_migration_plan.md</span><span class="fd">Análisis y plan de migración hacia TradingAgents.</span></div>
+      </details>
+
+      <details>
+        <summary>infra/ <span class="fd">— infraestructura como código</span></summary>
+        <div class="fitem"><span class="fn">docker/Dockerfile</span><span class="fd">Imagen de la aplicación (Python 3.11).</span></div>
+        <div class="fitem"><span class="fn">docker/prometheus.yml</span><span class="fd">Configuración de scrape de métricas.</span></div>
+        <div class="fitem"><span class="fn">grafana/dashboards/agentic_overview.json</span><span class="fd">Dashboard de visión general del sistema.</span></div>
+        <div class="fitem"><span class="fn">grafana/provisioning/…</span><span class="fd">Auto-provisión de datasources y dashboards de Grafana.</span></div>
+        <div class="fitem"><span class="fn">k8s/namespace.yaml</span><span class="fd">Namespace <code>agentic-investing</code>.</span></div>
+        <div class="fitem"><span class="fn">k8s/configmap.yaml</span><span class="fd">Configuración no sensible para los pods.</span></div>
+        <div class="fitem"><span class="fn">k8s/secret.example.yaml</span><span class="fd">Plantilla de secretos (sustituir por Vault / AWS Secrets Manager).</span></div>
+        <div class="fitem"><span class="fn">k8s/deployment.yaml</span><span class="fd">Despliegue de la app.</span></div>
+        <div class="fitem"><span class="fn">k8s/service.yaml</span><span class="fd">Servicio que expone la app y las métricas.</span></div>
+      </details>
+
+      <details>
+        <summary>scripts/ <span class="fd">— utilidades de ejecución</span></summary>
+        <div class="fitem"><span class="fn">run_tests.ps1 / .bat</span><span class="fd">Ejecución de los tests en Windows (con/sin venv, índice pip configurable).</span></div>
+        <div class="fitem"><span class="fn">run_tests.sh</span><span class="fd">Ejecución en WSL/Linux con creación de venv.</span></div>
+        <div class="fitem"><span class="fn">run_tests_docker.ps1 / .sh</span><span class="fd">Ejecución de los tests dentro de un contenedor Docker (sin instalar nada en el host).</span></div>
+        <div class="fitem"><span class="fn">run_backtest.py</span><span class="fd">Demo del motor de backtesting con serie sintética.</span></div>
+        <div class="fitem"><span class="fn">test_llm.py</span><span class="fd">Prueba de llamada al LLM real (JSON mode); valida la clave y el modelo configurado.</span></div>
+        <div class="fitem"><span class="fn">test_telegram_bot.py</span><span class="fd">Prueba del bot HITL: flujos mock (--all-mock, --timeout-test) e interactivo real.</span></div>
+      </details>
+
+      <details>
+        <summary>dashboard/ <span class="fd">— monitor en tiempo real del sistema</span></summary>
+        <div class="fitem"><span class="fn">agent_monitor.py</span><span class="fd">Dashboard Streamlit: timeline de eventos, tablas de oportunidades/decisiones/órdenes/LLM en hora local del sistema (convierte UTC → timezone local).</span></div>
+      </details>
+
+      <details>
+        <summary>src/ <span class="fd">— código fuente del sistema</span></summary>
+        <div class="fitem"><span class="fn">__init__.py</span><span class="fd">Marca el paquete raíz.</span></div>
+
+        <details>
+          <summary>app/ <span class="fd">— arranque de la aplicación</span></summary>
+          <div class="fitem"><span class="fn">main.py</span><span class="fd">Entrypoint: scheduler, métricas, construcción del pipeline (run/arun) y bucle principal.</span></div>
+        </details>
+
+        <details>
+          <summary>schemas/ <span class="fd">— contratos de datos Pydantic</span></summary>
+          <div class="fitem"><span class="fn">enums.py</span><span class="fd">Enumeraciones (Direction, Exchange, DecisionType, ExecutionStatus, etc.).</span></div>
+          <div class="fitem"><span class="fn">opportunity.py</span><span class="fd">Oportunidad de inversión (entrada, TP, SL, R/R, probabilidad).</span></div>
+          <div class="fitem"><span class="fn">evaluation.py</span><span class="fd">Resultado de un evaluador (score, confianza, recomendación).</span></div>
+          <div class="fitem"><span class="fn">decision.py</span><span class="fd">Decisión final (consenso, expectancy, OPERATE/NO_OPERATE, motivo).</span></div>
+          <div class="fitem"><span class="fn">order.py</span><span class="fd">Orden bracket y resultado de ejecución (ExecutionResult).</span></div>
+          <div class="fitem"><span class="fn">portfolio.py</span><span class="fd">Cartera y posiciones (equity, cash).</span></div>
+          <div class="fitem"><span class="fn">market.py</span><span class="fd">Datos de mercado (Quote).</span></div>
+          <div class="fitem"><span class="fn">feeds.py</span><span class="fd">Ítems de noticias y posts sociales (NewsItem, SocialPost).</span></div>
+          <div class="fitem"><span class="fn">hitl.py</span><span class="fd">Petición y respuesta de aprobación humana (TTL).</span></div>
+          <div class="fitem"><span class="fn">monitoring.py</span><span class="fd">Eventos de monitorización de posiciones.</span></div>
+          <div class="fitem"><span class="fn">state.py</span><span class="fd">Estado del pipeline (SystemState) que viaja por el grafo.</span></div>
+        </details>
+
+        <details>
+          <summary>agents/ <span class="fd">— agentes del sistema</span></summary>
+          <div class="fitem"><span class="fn">aggregator.py</span><span class="fd">Stateful: dedup intra-lote + memoria rodante 1h (cross-run). Aplica bonus de convergencia multi-fuente si el mismo ticker fue detectado por otra fuente en la ventana <code>cross_source_window_seconds</code>.</span></div>
+          <div class="fitem"><span class="fn">risk_filter.py</span><span class="fd">Filtro determinístico: exposición, correlación, límites.</span></div>
+          <div class="fitem"><span class="fn">decisor.py</span><span class="fd">Consenso ponderado + expectancy calibrada → decisión.</span></div>
+          <div class="fitem"><span class="fn">executor.py</span><span class="fd">Construye y envía bracket orders al broker, con validación previa.</span></div>
+          <div class="fitem"><span class="fn">monitor.py</span><span class="fd">Seguimiento de posiciones, P&amp;L y disparadores. Emite 5 métricas Prometheus (F6: pnl_unrealized_pct, open_positions, consecutive_losses, missing_stop_loss_total, monitoring_events_total).</span></div>
+          <details>
+            <summary>searchers/ <span class="fd">— buscadores de oportunidades</span></summary>
+            <div class="fitem"><span class="fn">base.py</span><span class="fd">Clase base de buscador (intervalo, búsqueda asíncrona).</span></div>
+            <div class="fitem"><span class="fn">technical.py</span><span class="fd">Señales técnicas (rupturas, momentum, volumen).</span></div>
+            <div class="fitem"><span class="fn">fundamental.py</span><span class="fd">Señales fundamentales (resultados, ratios).</span></div>
+            <div class="fitem"><span class="fn">news.py</span><span class="fd">Oportunidades a partir de noticias.</span></div>
+            <div class="fitem"><span class="fn">social.py</span><span class="fd">Oportunidades a partir de redes sociales.</span></div>
+            <div class="fitem"><span class="fn">cross_market.py</span><span class="fd">Correlaciones entre mercados, ADRs, FX.</span></div>
+            <div class="fitem"><span class="fn">premarket.py</span><span class="fd">Gaps y movimientos de pre-apertura.</span></div>
+          </details>
+          <details>
+            <summary>evaluators/ <span class="fd">— evaluadores multi-perfil</span></summary>
+            <div class="fitem"><span class="fn">base.py</span><span class="fd">Base con heurística determinística y método async <code>aevaluate</code>.</span></div>
+            <div class="fitem"><span class="fn">conservative.py</span><span class="fd">Perfil conservador.</span></div>
+            <div class="fitem"><span class="fn">moderate.py</span><span class="fd">Perfil moderado.</span></div>
+            <div class="fitem"><span class="fn">high_risk.py</span><span class="fd">Perfil agresivo.</span></div>
+            <div class="fitem"><span class="fn">sensationalist.py</span><span class="fd">Perfil sensacionalista.</span></div>
+            <div class="fitem"><span class="fn">llm_evaluator.py</span><span class="fd">Evaluador LLM (DeepSeek v4-flash en runtime). Construye <code>multi_source_context</code> e inyecta el placeholder en el prompt para informar al LLM de la convergencia multi-fuente.</span></div>
+          </details>
+        </details>
+
+        <details>
+          <summary>governance/ <span class="fd">— gobierno y seguridad</span></summary>
+          <div class="fitem"><span class="fn">pre_trade_validator.py</span><span class="fd">Validación previa: mercado abierto, capital, precio, negociabilidad.</span></div>
+          <div class="fitem"><span class="fn">kill_switch.py</span><span class="fd">Bloqueo por drawdown, pérdidas consecutivas o anomalías.</span></div>
+          <div class="fitem"><span class="fn">audit_logger.py</span><span class="fd">Trazabilidad inmutable de todos los eventos.</span></div>
+        </details>
+
+        <details>
+          <summary>graph/ <span class="fd">— orquestación</span></summary>
+          <div class="fitem"><span class="fn">pipeline.py</span><span class="fd">Orquestador determinístico: <code>run()</code> (síncrono) y <code>arun()</code> (async/LLM).</span></div>
+          <div class="fitem"><span class="fn">workflow.py</span><span class="fd">Grafo LangGraph completo. Nodo HITL real: inyecta <code>TelegramHITLClient</code>, gestiona TTL, PAUSE_1H activa kill switch. Parámetro <code>hitl=</code> en <code>build_workflow()</code>.</span></div>
+          <div class="fitem"><span class="fn">factory.py</span><span class="fd">Construye el pipeline según <code>config.llm.evaluation_engine</code> (heurístico vs LLM).</span></div>
+        </details>
+
+        <details>
+          <summary>llm/ <span class="fd">— capa de modelos de lenguaje</span></summary>
+          <div class="fitem"><span class="fn">base.py</span><span class="fd">Interfaz abstracta <code>LLMClient</code>.</span></div>
+          <div class="fitem"><span class="fn">mock.py</span><span class="fd"><code>MockLLMClient</code> para tests y modo offline.</span></div>
+          <div class="fitem"><span class="fn">providers.py</span><span class="fd">Clientes reales (OpenAI / Anthropic / Azure).</span></div>
+          <div class="fitem"><span class="fn">prompts.py</span><span class="fd">Carga de prompts versionados desde <code>config/prompts/</code>.</span></div>
+          <div class="fitem"><span class="fn">parsing.py</span><span class="fd">Parseo robusto de respuestas JSON del LLM.</span></div>
+        </details>
+
+        <details>
+          <summary>memory/ <span class="fd">— memoria y conocimiento</span></summary>
+          <div class="fitem"><span class="fn">episodic.py</span><span class="fd">Memoria episódica: calibra win-prob y expectancy con el histórico.</span></div>
+          <div class="fitem"><span class="fn">track_record.py</span><span class="fd">Registro de rendimiento por estrategia/fuente.</span></div>
+          <div class="fitem"><span class="fn">vector_store.py</span><span class="fd">Almacén vectorial (Qdrant / in-memory) para recall semántico.</span></div>
+        </details>
+
+        <details>
+          <summary>persistence/ <span class="fd">— persistencia</span></summary>
+          <div class="fitem"><span class="fn">repository.py</span><span class="fd">Repositorio in-memory inmutable (append-only) para tests/MVP.</span></div>
+          <div class="fitem"><span class="fn">postgres.py</span><span class="fd">Repositorio PostgreSQL/TimescaleDB con DDL (8 tablas append-only).</span></div>
+        </details>
+
+        <details>
+          <summary>connectors/ <span class="fd">— integraciones externas (interfaz + mock + real)</span></summary>
+          <div class="fitem"><span class="fn">ibkr_read.py</span><span class="fd">Lectura de mercado/cuenta: quotes, OHLCV histórico, pre-market, scanner movers (NYSE + BME). Incluye cortacircuitos ante Error 162 «different IP» (90 s) y <code>_IBWrapperNoiseFilter</code> para colapsar el spam de ib_async.wrapper.</span></div>
+          <div class="fitem"><span class="fn">ibkr_write.py</span><span class="fd">Ejecución de órdenes bracket en IBKR.</span></div>
+          <div class="fitem"><span class="fn">news_apis.py</span><span class="fd">Noticias (NewsAPI, Finnhub, Marketaux…).</span></div>
+          <div class="fitem"><span class="fn">social_apis.py</span><span class="fd">Redes sociales (Reddit, StockTwits).</span></div>
+          <div class="fitem"><span class="fn">telegram_bot.py</span><span class="fd">Bot de Telegram HITL: botones inline Aprobar/Rechazar/Pausar 1h, multi-usuario, TTL async. <code>MockHITLClient</code> y <code>build_request()</code> para tests.</span></div>
+        </details>
+
+        <details>
+          <summary>messaging/ · scheduler/ · observability/ · utils/ <span class="fd">— plataforma transversal</span></summary>
+          <div class="fitem"><span class="fn">messaging/streams.py</span><span class="fd">Bus de mensajería: <code>EventPublisher</code> publica oportunidades, decisiones y ejecuciones en Redis Streams (o InMemoryStreamBus) tras cada fase del pipeline.</span></div>
+          <div class="fitem"><span class="fn">scheduler/scheduler.py</span><span class="fd">Planificador de buscadores (APScheduler / SimpleScheduler).</span></div>
+          <div class="fitem"><span class="fn">observability/metrics.py</span><span class="fd">11 métricas Prometheus: 6 del pipeline (oportunidades, decisiones, órdenes, rechazos, kill_switch_active, latencia) + 5 del monitor (pnl_unrealized_pct, open_positions, consecutive_losses, missing_stop_loss_total, monitoring_events_total).</span></div>
+          <div class="fitem"><span class="fn">utils/config.py</span><span class="fd">Carga cacheada de los YAML de <code>config/</code>.</span></div>
+        </details>
+
+        <details>
+          <summary>backtest/ <span class="fd">— motor de backtesting</span></summary>
+          <div class="fitem"><span class="fn">data.py</span><span class="fd">Modelo <code>Bar</code> (OHLCV), carga de CSV y serie sintética.</span></div>
+          <div class="fitem"><span class="fn">strategy.py</span><span class="fd">Estrategia de ejemplo (cruce de medias / SMA).</span></div>
+          <div class="fitem"><span class="fn">engine.py</span><span class="fd">Motor de simulación barra a barra con bracket orders.</span></div>
+          <div class="fitem"><span class="fn">metrics.py</span><span class="fd">KPIs: winrate, expectancy, profit factor, Sharpe, drawdown, Calmar.</span></div>
+        </details>
+      </details>
+
+      <details>
+        <summary>tests/ <span class="fd">— batería de pruebas (offline con mocks)</span></summary>
+        <div class="fitem"><span class="fn">conftest.py</span><span class="fd">Fixtures compartidas (oportunidad, cartera…).</span></div>
+        <div class="fitem"><span class="fn">unit/</span><span class="fd">Tests unitarios (19 ficheros): aggregator (incluyendo convergencia multi-fuente cross-run), decisor, risk_filter, evaluators, kill_switch, validator, executor, monitor, llm, factory, pipeline_async, persistence, scheduler, observability, schemas, connectors, searchers, searchers_market (incluyendo <code>_ibkr_symbol_to_ticker</code> y filtro Error 162), <b>test_hitl_node</b> (8 tests del nodo LangGraph HITL).</span></div>
+        <div class="fitem"><span class="fn">integration/test_pipeline.py</span><span class="fd">Test end-to-end del pipeline completo.</span></div>
+        <div class="fitem"><span class="fn">backtest/</span><span class="fd">Tests del motor de backtesting (engine, metrics).</span></div>
+      </details>
+    </details>
+  </div>
+  <p class="foot">Árbol interactivo: usa el buscador para filtrar por nombre o descripción. Se omiten artefactos
+     generados (<code>__pycache__</code>, <code>.venv</code>).</p>
+</section>
+
+<script>
+/* ---------- tabs ---------- */
+const tabs=document.querySelectorAll('.tab'), views=document.querySelectorAll('.view');
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>x.classList.remove('active'));views.forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  const v=document.getElementById(t.dataset.view);v.classList.add('active');
+  requestAnimationFrame(()=>{drawLogic();drawInfra();});
+}));
+
+/* ---------- dynamic SVG connectors ---------- */
+function center(el,wrap){
+  const r=el.getBoundingClientRect(),w=wrap.getBoundingClientRect();
+  return {x:r.left-w.left+r.width/2, y:r.top-w.top+r.height/2,
+          top:r.top-w.top, bottom:r.top-w.top+r.height,
+          left:r.left-w.left, right:r.left-w.left+r.width};
+}
+function drawPairs(svgId,wrapId,pairs,color){
+  const svg=document.getElementById(svgId),wrap=document.getElementById(wrapId);
+  if(!wrap.offsetParent && wrapId!=='logicWrap' && wrapId!=='infraWrap'){}
+  svg.innerHTML='';
+  const W=wrap.clientWidth,H=wrap.clientHeight;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  if(!svg.querySelector('defs')){
+    svg.insertAdjacentHTML('beforeend',
+     `<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="${color}"/></marker></defs>`);
+  }
+  pairs.forEach(([a,b,vertical])=>{
+    const ea=document.getElementById(a),eb=document.getElementById(b);
+    if(!ea||!eb)return;
+    const ca=center(ea,wrap),cb=center(eb,wrap);
+    let x1,y1,x2,y2;
+    if(vertical){x1=ca.x;y1=ca.bottom;x2=cb.x;y2=cb.top;}
+    else{
+      if(cb.left>ca.right){x1=ca.right;y1=ca.y;x2=cb.left;y2=cb.y;}
+      else if(cb.right<ca.left){x1=ca.left;y1=ca.y;x2=cb.right;y2=cb.y;}
+      else{x1=ca.x;y1=ca.bottom;x2=cb.x;y2=cb.top;}
+    }
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const d=vertical?`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`
+                    :`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+    svg.insertAdjacentHTML('beforeend',
+      `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.6"
+        stroke-dasharray="5 5" opacity="0.55" marker-end="url(#ah)"/>`);
+  });
+}
+function drawLogic(){
+  drawPairs('logicSvg','logicWrap',[
+    ['n-tech','n-agg',true],['n-news','n-agg',true],['n-cross','n-agg',true],
+    ['n-agg','n-risk',false],['n-risk','n-eval',false],['n-eval','n-dec',false],
+    ['n-dec','n-val',true],['n-val','n-hitl',false],['n-hitl','n-exec',true],
+    ['n-exec','n-mon',false],['n-mon','n-mem',false]
+  ],'#5b8def');
+}
+function drawInfra(){
+  drawPairs('infraSvg','infraWrap',[
+    ['i-app','i-pg',false],['i-app','i-redis',false],['i-app','i-qdrant',false],
+    ['i-app','i-ib',false],['i-app','i-llm',false],['i-app','i-apis',false],['i-app','i-tg',false],
+    ['i-app','i-prom',true],['i-prom','i-graf',true]
+  ],'#16c7a7');
+}
+window.addEventListener('resize',()=>{drawLogic();drawInfra();});
+window.addEventListener('load',()=>{drawLogic();drawInfra();});
+
+/* ---------- animation ---------- */
+const STEPS=[
+  {id:'ingest', ic:'🔍', t:'Ingesta',     d:'Buscadores'},
+  {id:'agg',    ic:'🧩', t:'Aggregator',  d:'Consolida'},
+  {id:'risk',   ic:'🛡️', t:'Risk Filter', d:'Límites'},
+  {id:'eval',   ic:'⚖️', t:'Evaluators',  d:'4 perfiles'},
+  {id:'decide', ic:'🎯', t:'Decisor',     d:'Consenso'},
+  {id:'hitl',   ic:'📱', t:'HITL',        d:'Telegram'},
+  {id:'exec',   ic:'⚡', t:'Executor',    d:'Bracket'},
+  {id:'monitor',ic:'📡', t:'Monitor',     d:'Métricas+PnL'}
+];
+const pipeEl=document.getElementById('pipeline');
+function buildPipeline(){
+  pipeEl.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    pipeEl.insertAdjacentHTML('beforeend',
+     `<div class="pstep" id="ps-${s.id}">
+        <span class="badge okb">OK</span><span class="badge failb">STOP</span>
+        <div class="ic">${s.ic}</div><h4>${s.t}</h4><p>${s.d}</p></div>`);
+    if(i<STEPS.length-1) pipeEl.insertAdjacentHTML('beforeend',`<div class="arrow" id="ar-${i}">➜</div>`);
+  });
+}
+buildPipeline();
+
+const logEl=document.getElementById('log'), artEl=document.getElementById('artifact'),
+      verdictEl=document.getElementById('verdict');
+function log(msg,cls=''){const t=new Date().toLocaleTimeString('es-ES',{hour12:false});
+  logEl.insertAdjacentHTML('beforeend',`<div class="ln ${cls}"><span class="t">${t}</span> ${msg}</div>`);
+  logEl.scrollTop=logEl.scrollHeight;}
+
+/* scenario scripts: each entry = {step, art, log, cls, state} */
+const ART={
+  ingest:`Opportunity {\n  ticker: "IBE.MC",\n  source: "technical",\n  entry: 12.45, tp: 12.95, sl: 12.20,\n  win_prob: 0.58, R/R: 2.0\n}`,
+  agg:`Consolidated {\n  ticker: "IBE.MC",\n  sources: ["technical","news"],\n  confidence: ↑ (2 fuentes)\n}`,
+  riskPass:`RiskResult {\n  passed: true,\n  exposure_ok: true,\n  correlation_ok: true\n}`,
+  riskFail:`RiskResult {\n  passed: false,\n  violation: "exposición sector > 25%"\n}`,
+  eval:`Evaluations [\n  conservative:  0.78 APPROVE,\n  moderate:      0.82 APPROVE,\n  high_risk:     0.85 APPROVE,\n  sensationalist:0.71 APPROVE\n]`,
+  evalNo:`Evaluations [\n  conservative:  0.41 ABSTAIN,\n  moderate:      0.38 REJECT,\n  high_risk:     0.55 ABSTAIN,\n  sensationalist:0.60 APPROVE\n]`,
+  decOp:`Decision {\n  decision: "OPERATE",\n  final_score: 0.81,\n  expectancy: +1.49%, R/R: 2.0,\n  consensus: 4/4\n}`,
+  decNo:`Decision {\n  decision: "NO_OPERATE",\n  reason: "LOW_CONSENSUS",\n  consensus: 1/4\n}`,
+  decRisk:`Decision {\n  decision: "NO_OPERATE",\n  reason: "RISK_FILTER_REJECT"\n}`,
+  hitlOk:`ApprovalResponse {\n  decision: "APPROVED",\n  responder: "trader_01",\n  latency: 38s\n}`,
+  hitlTo:`ApprovalResponse {\n  decision: "TIMEOUT",\n  (sin respuesta en 5 min)\n}`,
+  exec:`ExecutionResult {\n  status: "FILLED",\n  fill_price: 12.45, qty: 400,\n  bracket: TP 12.95 / SL 12.20\n}`,
+  execPartial:`ExecutionResult {\n  status: "PARTIAL",\n  fill_price: 12.46, qty: 240/400,\n  pendiente: 160 (reintento)\n}`,
+  monitor:`Monitoring {\n  position: "IBE.MC ×400",\n  pnl: +0.0%, trailing: armado\n}`,
+  monitorPartial:`Monitoring {\n  position: "IBE.MC ×240",\n  estado: "parcial, vigilando relleno"\n}`,
+  kill:`KillSwitch {\n  active: true,\n  reason: "drawdown_intradia 3.2% > 3.0%"\n}`,
+  evalLLM:`await asyncio.gather(\n  conservative.aevaluate(opp),\n  moderate.aevaluate(opp),\n  high_risk.aevaluate(opp),\n  sensationalist.aevaluate(opp)\n)  # 4 llamadas LLM en paralelo`,
+  evalLLMres:`Evaluations [  (model: gpt-5.1)\n  conservative:  0.79 APPROVE,\n  moderate:      0.84 APPROVE,\n  high_risk:     0.88 APPROVE,\n  sensationalist:0.73 APPROVE\n]  latencia ~1.2s (concurrente)`,
+  valFail:`MarketContext {\n  market_open: false,\n  is_tradable_today: false,\n  → PreTradeValidation: REJECT\n}`
+};
+
+const SCEN={
+  approved:[
+    {s:'ingest',a:ART.ingest,m:'6 buscadores ejecutados. Nueva oportunidad <b>IBE.MC</b>.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida (corroborada por 2 fuentes).',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: <b>PASA</b> (exposición y correlación OK).',c:'ok',st:'done'},
+    {s:'eval',a:ART.eval,m:'4 evaluadores puntúan; consenso fuerte.',c:'ok',st:'done'},
+    {s:'decide',a:ART.decOp,m:'Decisor: <b>OPERATE</b> (score 0.81, expectancy +1.49%).',c:'ok',st:'done'},
+    {s:'hitl',a:ART.hitlOk,m:'HITL Telegram: humano <b>APRUEBA</b>.',c:'ok',st:'done'},
+    {s:'exec',a:ART.exec,m:'Executor envía bracket order → <b>FILLED</b> @12.45.',c:'ok',st:'done'},
+    {s:'monitor',a:ART.monitor,m:'Monitor sigue la posición y el P&amp;L.',c:'ok',st:'done'}
+  ],
+  llm:[
+    {s:'ingest',a:ART.ingest,m:'<b>engine=llm</b> → el orquestador usa <code>arun()</code>. Oportunidad <b>IBE.MC</b>.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida (corroborada por 2 fuentes).',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: <b>PASA</b>.',c:'ok',st:'done'},
+    {s:'eval',a:ART.evalLLM,m:'<b>asyncio.gather()</b>: 4 evaluadores LLM lanzados <b>en paralelo</b>.',c:'in',st:'done'},
+    {s:'eval',a:ART.evalLLMres,m:'Respuestas LLM recibidas concurrentemente (~1.2s vs ~4.8s secuencial).',c:'ok',st:'done'},
+    {s:'decide',a:ART.decOp,m:'Decisor: <b>OPERATE</b> (consenso ponderado 4/4).',c:'ok',st:'done'},
+    {s:'hitl',a:ART.hitlOk,m:'HITL Telegram: humano <b>APRUEBA</b>.',c:'ok',st:'done'},
+    {s:'exec',a:ART.exec,m:'Executor (callback async) → <b>FILLED</b> @12.45.',c:'ok',st:'done'},
+    {s:'monitor',a:ART.monitor,m:'Monitor sigue la posición y el P&amp;L.',c:'ok',st:'done'}
+  ],
+  validator:[
+    {s:'ingest',a:ART.ingest,m:'Nueva oportunidad detectada.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida la señal.',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: PASA.',c:'ok',st:'done'},
+    {s:'eval',a:ART.eval,m:'Consenso fuerte de los evaluadores.',c:'ok',st:'done'},
+    {s:'decide',a:ART.decOp,m:'Decisor: <b>OPERATE</b>.',c:'ok',st:'done'},
+    {s:'hitl',a:ART.hitlOk,m:'HITL Telegram: humano <b>APRUEBA</b>.',c:'ok',st:'done'},
+    {s:'exec',a:ART.valFail,m:'Pre-Trade Validator: <b>BLOQUEA</b> (mercado cerrado / no negociable hoy).',c:'bad',st:'fail'}
+  ],
+  partial:[
+    {s:'ingest',a:ART.ingest,m:'Nueva oportunidad detectada.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida la señal.',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: PASA.',c:'ok',st:'done'},
+    {s:'eval',a:ART.eval,m:'Consenso fuerte de los evaluadores.',c:'ok',st:'done'},
+    {s:'decide',a:ART.decOp,m:'Decisor: <b>OPERATE</b>.',c:'ok',st:'done'},
+    {s:'hitl',a:ART.hitlOk,m:'HITL Telegram: humano <b>APRUEBA</b>.',c:'ok',st:'done'},
+    {s:'exec',a:ART.execPartial,m:'Executor: relleno <b>PARTIAL</b> 240/400 (160 pendientes).',c:'warn',st:'done'},
+    {s:'monitor',a:ART.monitorPartial,m:'Monitor vigila la posición parcial y el relleno restante.',c:'warn',st:'done'}
+  ],
+  risk:[
+    {s:'ingest',a:ART.ingest,m:'Nueva oportunidad detectada.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida la señal.',c:'in',st:'done'},
+    {s:'risk',a:ART.riskFail,m:'Risk Filter: <b>RECHAZA</b> (exposición sector > 25%).',c:'bad',st:'fail'},
+    {s:'decide',a:ART.decRisk,m:'Decisor: <b>NO_OPERATE</b> (RISK_FILTER_REJECT).',c:'bad',st:'fail',jump:true}
+  ],
+  consensus:[
+    {s:'ingest',a:ART.ingest,m:'Nueva oportunidad detectada.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida la señal.',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: PASA.',c:'ok',st:'done'},
+    {s:'eval',a:ART.evalNo,m:'Evaluadores divididos: sin mayoría.',c:'warn',st:'done'},
+    {s:'decide',a:ART.decNo,m:'Decisor: <b>NO_OPERATE</b> (LOW_CONSENSUS 1/4).',c:'bad',st:'fail'}
+  ],
+  timeout:[
+    {s:'ingest',a:ART.ingest,m:'Nueva oportunidad detectada.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida la señal.',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: PASA.',c:'ok',st:'done'},
+    {s:'eval',a:ART.eval,m:'Consenso fuerte de los evaluadores.',c:'ok',st:'done'},
+    {s:'decide',a:ART.decOp,m:'Decisor: <b>OPERATE</b>.',c:'ok',st:'done'},
+    {s:'hitl',a:ART.hitlTo,m:'HITL: <b>sin respuesta</b> en 5 min → no-operar por defecto. (<code>responder=None</code>)',c:'bad',st:'fail'}
+  ],
+  pause:[
+    {s:'ingest',a:ART.ingest,m:'Nueva oportunidad detectada.',c:'in',st:'done'},
+    {s:'agg',a:ART.agg,m:'Aggregator consolida la señal.',c:'in',st:'done'},
+    {s:'risk',a:ART.riskPass,m:'Risk Filter: PASA.',c:'ok',st:'done'},
+    {s:'eval',a:ART.eval,m:'Consenso fuerte de los evaluadores.',c:'ok',st:'done'},
+    {s:'decide',a:ART.decOp,m:'Decisor: <b>OPERATE</b>.',c:'ok',st:'done'},
+    {s:'hitl',a:`ApprovalResponse {\n  decision: "PAUSE_1H",\n  responder: "trader_01"\n}`,m:'HITL: trader solicita <b>PAUSE 1h</b> → kill switch activado → no-operar.',c:'warn',st:'fail'}
+  ],
+  killswitch:[
+    {s:'ingest',a:ART.kill,m:'<b>Kill switch ACTIVO</b>: drawdown intradía 3.2%.',c:'bad',st:'fail',jump:true}
+  ]
+};
+
+let timer=null, idx=0, current=[];
+function clearStates(){
+  STEPS.forEach(s=>{const e=document.getElementById('ps-'+s.id);e.className='pstep';});
+  document.querySelectorAll('.arrow').forEach(a=>a.classList.remove('lit'));
+  verdictEl.className='verdict';verdictEl.innerHTML='';
+}
+function prep(){
+  current=SCEN[document.getElementById('scenario').value];
+  idx=0;clearStates();logEl.innerHTML='';artEl.textContent='// Listo. Reproduciendo escenario…';
+  // mark skipped steps for short scenarios
+  const used=new Set(current.map(x=>x.s));
+  STEPS.forEach(s=>{if(!used.has(s.id))document.getElementById('ps-'+s.id).classList.add('skip');});
+}
+function applyStep(){
+  if(idx>=current.length){finish();return;}
+  // reset previous active to its final state
+  if(idx>0){const p=current[idx-1];const pe=document.getElementById('ps-'+p.s);
+    pe.classList.remove('active');pe.classList.add(p.st);}
+  const ev=current[idx];const el=document.getElementById('ps-'+ev.s);
+  el.classList.remove('skip');el.classList.add('active');
+  // light arrow leading to this step
+  const sIndex=STEPS.findIndex(s=>s.id===ev.s);
+  if(sIndex>0){const ar=document.getElementById('ar-'+(sIndex-1));if(ar)ar.classList.add('lit');}
+  artEl.textContent=ev.a;
+  log(ev.m,ev.c);
+  idx++;
+  if(idx>=current.length)setTimeout(finish,300);
+}
+function finish(){
+  if(current.length){const last=current[current.length-1];
+    const le=document.getElementById('ps-'+last.s);le.classList.remove('active');le.classList.add(last.st);}
+  document.querySelectorAll('.arrow').forEach(a=>a.classList.remove('lit'));
+  const scen=document.getElementById('scenario').value;
+  const okTxt={
+    approved:'✅ OPERATE · Orden ejecutada y en seguimiento',
+    llm:'✅ OPERATE · Evaluación LLM concurrente · orden ejecutada',
+    partial:'🧩 OPERATE · Relleno parcial (240/400) en seguimiento'
+  };
+  if(okTxt[scen]){verdictEl.className='verdict show op';verdictEl.innerHTML=okTxt[scen];}
+  else{verdictEl.className='verdict show noop';
+    const txt={risk:'🛡️ NO_OPERATE · Bloqueada por Risk Filter',consensus:'🤝 NO_OPERATE · Sin consenso suficiente',
+      validator:'✋ NO_OPERATE · Pre-Trade Validator bloquea',
+      timeout:'📱 NO_OPERATE · HITL sin respuesta (TTL)',
+      pause:'⏸ NO_OPERATE · PAUSE_1H → kill switch activado',
+      killswitch:'🛑 BLOQUEADO · Kill switch activo'}[scen];
+    verdictEl.innerHTML=txt;}
+  stop();
+}
+function play(){
+  if(timer)return;
+  if(idx===0||idx>=current.length)prep();
+  document.getElementById('play').textContent='⏸ Pausar';
+  const sp=+document.getElementById('speed').value;
+  applyStep();
+  timer=setInterval(()=>{if(idx>=current.length){stop();}else{applyStep();}},sp);
+}
+function stop(){clearInterval(timer);timer=null;document.getElementById('play').textContent='▶ Reproducir';}
+document.getElementById('play').addEventListener('click',()=>{timer?stop():play();});
+document.getElementById('step').addEventListener('click',()=>{stop();if(idx===0||idx>=current.length)prep();applyStep();});
+document.getElementById('reset').addEventListener('click',()=>{stop();prep();});
+document.getElementById('scenario').addEventListener('change',()=>{stop();prep();});
+document.getElementById('speed').addEventListener('input',()=>{if(timer){stop();play();}});
+prep();
+
+/* ---------- project structure tree ---------- */
+const treeEl=document.getElementById('tree');
+const allDetails=()=>treeEl.querySelectorAll('details');
+document.getElementById('expandAll').addEventListener('click',()=>allDetails().forEach(d=>d.open=true));
+document.getElementById('collapseAll').addEventListener('click',()=>{
+  allDetails().forEach((d,i)=>{d.open=(i===0);});
+});
+function clearMarks(el){
+  el.querySelectorAll('mark').forEach(m=>{const t=document.createTextNode(m.textContent);m.replaceWith(t);});
+}
+function highlight(span,q){
+  const txt=span.textContent;const i=txt.toLowerCase().indexOf(q);
+  if(i<0)return;
+  const before=txt.slice(0,i),hit=txt.slice(i,i+q.length),after=txt.slice(i+q.length);
+  span.innerHTML='';span.append(document.createTextNode(before));
+  const mk=document.createElement('mark');mk.textContent=hit;span.append(mk,document.createTextNode(after));
+}
+document.getElementById('treeSearch').addEventListener('input',e=>{
+  const q=e.target.value.trim().toLowerCase();
+  const items=treeEl.querySelectorAll('.fitem');
+  treeEl.querySelectorAll('.fitem .fn,.fitem .fd').forEach(clearMarks);
+  if(!q){
+    items.forEach(it=>it.classList.remove('hide'));
+    allDetails().forEach(d=>{d.classList.remove('hide');d.open=false;});
+    treeEl.querySelector('details').open=true;
+    return;
+  }
+  items.forEach(it=>{
+    const match=it.textContent.toLowerCase().includes(q);
+    it.classList.toggle('hide',!match);
+    if(match)it.querySelectorAll('.fn,.fd').forEach(s=>highlight(s,q));
+  });
+  // show only folders that contain a visible item; expand them
+  allDetails().forEach(d=>{
+    const hasVisible=d.querySelector('.fitem:not(.hide)');
+    d.classList.toggle('hide',!hasVisible);
+    d.open=!!hasVisible;
+  });
+});
+</script>
+</body>
+</html>

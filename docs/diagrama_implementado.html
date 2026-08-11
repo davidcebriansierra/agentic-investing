@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sistema Agéntico de Inversión · Diagrama de lo implementado</title>
+<style>
+  :root{
+    --bg:#eef2f7; --ink:#1f2a3a; --muted:#5d6b80; --line:#c7d2e0; --panel:#ffffff;
+    --search:#1d6fb8; --searchbg:#e8f1fb;
+    --agg:#7a3fb0; --aggbg:#f1e9fa;
+    --risk:#c0392b; --riskbg:#fbeae8;
+    --eval:#1f8a5b; --evalbg:#e6f5ee;
+    --dec:#b8860b; --decbg:#fbf2dd;
+    --hitl:#0f6b86; --hitlbg:#e3f3f8;
+    --exec:#d2691e; --execbg:#fbeede;
+    --data:#34495e; --databg:#e9edf2;
+    --infra:#444c57; --infrabg:#eceff3;
+    --ok:#1f8a5b; --part:#c8860b; --no:#9aa6b6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;font-size:13px;line-height:1.4}
+  header{text-align:center;padding:22px 16px 10px}
+  header h1{margin:0;font-size:24px;letter-spacing:.3px}
+  header .sub{color:var(--muted);margin-top:4px;font-size:13px}
+  .legend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:14px auto;max-width:1000px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .dot.ok{background:var(--ok)} .dot.part{background:var(--part)} .dot.no{background:var(--no)}
+
+  .wrap{max-width:1480px;margin:0 auto;padding:0 18px 40px;
+    display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+  .board{display:flex;flex-direction:column;gap:16px}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    box-shadow:0 1px 2px rgba(20,40,70,.05)}
+  .panel>h2{margin:0 0 10px;font-size:13.5px;display:flex;align-items:center;gap:8px;
+    border-bottom:2px solid var(--line);padding-bottom:7px}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;
+    background:var(--ink);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+
+  .row{display:grid;gap:16px}
+  .row.r1{grid-template-columns:1.35fr 1fr 1fr}
+  .row.r2{grid-template-columns:1.6fr 1fr 1fr}
+  .row.r3{grid-template-columns:1fr 1fr 1fr}
+
+  .cards{display:flex;flex-direction:column;gap:8px}
+  .card{border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:8px 10px;background:#fff;position:relative}
+  .card .t{font-weight:700;font-size:12.5px;display:flex;align-items:center;gap:6px}
+  .card .d{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .card .f{font-family:Consolas,monospace;font-size:10.5px;color:#37506e;margin-top:3px;word-break:break-all}
+  .st{position:absolute;top:8px;right:8px;width:11px;height:11px;border-radius:50%}
+  .st.ok{background:var(--ok)} .st.part{background:var(--part)} .st.no{background:var(--no)}
+
+  /* color accents per zone */
+  .z-search>h2{color:var(--search)} .z-search .num{background:var(--search)} .z-search{background:var(--searchbg)}
+  .z-agg>h2{color:var(--agg)} .z-agg .num{background:var(--agg)} .z-agg{background:var(--aggbg)}
+  .z-risk>h2{color:var(--risk)} .z-risk .num{background:var(--risk)} .z-risk{background:var(--riskbg)}
+  .z-eval>h2{color:var(--eval)} .z-eval .num{background:var(--eval)} .z-eval{background:var(--evalbg)}
+  .z-dec>h2{color:var(--dec)} .z-dec .num{background:var(--dec)} .z-dec{background:var(--decbg)}
+  .z-hitl>h2{color:var(--hitl)} .z-hitl .num{background:var(--hitl)} .z-hitl{background:var(--hitlbg)}
+  .z-exec>h2{color:var(--exec)} .z-exec .num{background:var(--exec)} .z-exec{background:var(--execbg)}
+  .z-data>h2{color:var(--data)} .z-data .num{background:var(--data)} .z-data{background:var(--databg)}
+  .z-infra>h2{color:var(--infra)} .z-infra .num{background:var(--infra)} .z-infra{background:var(--infrabg)}
+
+  .z-search .card{border-left-color:var(--search)}
+  .z-agg .card{border-left-color:var(--agg)}
+  .z-risk .card{border-left-color:var(--risk)}
+  .z-eval .card{border-left-color:var(--eval)}
+  .z-dec .card{border-left-color:var(--dec)}
+  .z-hitl .card{border-left-color:var(--hitl)}
+  .z-exec .card{border-left-color:var(--exec)}
+  .z-data .card{border-left-color:var(--data)}
+  .z-infra .card{border-left-color:var(--infra)}
+
+  .flowtag{text-align:center;color:var(--muted);font-size:11px;margin:-6px 0 -6px}
+  .flowtag b{color:var(--ink)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+
+  /* sidebar */
+  aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:14px}
+  .side{background:#13243b;color:#dbe6f3;border-radius:10px;padding:14px 16px}
+  .side h3{margin:0 0 8px;font-size:13px;color:#8fd0ff;text-transform:uppercase;letter-spacing:.6px}
+  .side ul{margin:0;padding-left:18px}
+  .side li{margin:4px 0;font-size:12px}
+  .side .k{color:#fff;font-weight:600}
+  .kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .kpi .b{background:#1b2f4d;border-radius:8px;padding:8px;text-align:center}
+  .kpi .b .n{font-size:18px;font-weight:800;color:#8fd0ff}
+  .kpi .b .l{font-size:10px;color:#a9bdd6;text-transform:uppercase}
+  .scope{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .scope h3{margin:0 0 6px;font-size:12.5px}
+  .scope .tag{display:inline-block;font-size:11px;border-radius:20px;padding:2px 9px;margin:2px 2px;border:1px solid var(--line)}
+  .tag.no{color:#7a5; }
+  .foot{max-width:1480px;margin:0 auto;padding:6px 18px 30px;color:var(--muted);font-size:11.5px;text-align:center}
+
+  @media (max-width:1100px){.wrap{grid-template-columns:1fr}.row.r1,.row.r2,.row.r3{grid-template-columns:1fr}}
+  @media print{body{background:#fff}.side{background:#13243b !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sistema Agéntico de Inversión — IBEX35 &amp; S&amp;P500</h1>
+  <div class="sub">Diagrama de <b>lo implementado</b> (TFM · <code>agentic-investing</code>) · Validado en runtime PAPER (IB Gateway real · DeepSeek v4-flash) · Objetivo: expectancy positiva, Target 1,5–3% con R/R ≥ 2</div>
+</header>
+
+<div class="legend">
+  <span><i class="dot ok"></i> Implementado y funcional (offline con mocks)</span>
+  <span><i class="dot part"></i> Implementado · requiere cableado real (API/clave/servicio)</span>
+  <span><i class="dot no"></i> Fuera de alcance / no implementado</span>
+</div>
+
+<div class="wrap">
+  <div class="board">
+
+    <!-- ROW 1: searchers + aggregator + risk -->
+    <div class="row r1">
+      <div class="panel z-search">
+        <h2><span class="num">1</span> Agentes buscadores de oportunidades</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Análisis técnico</div><div class="d">Rupturas, momentum, volumen (heurística).</div><div class="f">searchers/technical.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Análisis fundamental</div><div class="d">Resultados y ratios (mock).</div><div class="f">searchers/fundamental.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Noticias</div><div class="d">Señales event-driven desde feeds.</div><div class="f">searchers/news.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Redes sociales</div><div class="d">Reddit / StockTwits (sentimiento).</div><div class="f">searchers/social.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Cross-market</div><div class="d">Correlaciones, ADRs, FX.</div><div class="f">searchers/cross_market.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Premarket</div><div class="d">Gaps y pre-apertura.</div><div class="f">searchers/premarket.py</div></div>
+        </div>
+      </div>
+
+      <div class="panel z-agg">
+        <h2><span class="num">2</span> Aggregator / Deduplicador</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Consolidación</div><div class="d">Agrupa por (ticker, ventana temporal) y deduplica intra-ciclo.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Convergencia multi-fuente</div><div class="d">Memoria rodante 1h entre runs. Bonus de confianza (+0.08) si otra fuente independiente detectó el mismo ticker en esa ventana.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Priorización</div><div class="d">Ordena por score + bonus y envía al filtro de riesgo.</div><div class="f">agents/aggregator.py · cross_source_window_seconds</div></div>
+        </div>
+      </div>
+
+      <div class="panel z-risk">
+        <h2><span class="num">3</span> Filtro de riesgo (pre-evaluación)</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Límite de exposición</div><div class="d">Por activo / sector / mercado.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Correlación</div><div class="d">Contra posiciones actuales de la cartera.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">R/R y TP/SL</div><div class="d">Validaciones determinísticas del setup.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Capital en riesgo</div><div class="d">Límite simultáneo · PASA / RECHAZA.</div><div class="f">agents/risk_filter.py · config/risk_limits.yaml</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flowtag">▼ &nbsp; <b>aggregate → risk_filter → evaluate</b> &nbsp; (<code>pipeline.py</code>: <code>run</code>/<code>arun</code> &nbsp;|&nbsp; <code>workflow.py</code>: LangGraph) &nbsp; ▼</div>
+
+    <!-- ROW 2: evaluators + decisor + hitl -->
+    <div class="row r2">
+      <div class="panel z-eval">
+        <h2><span class="num">4</span> Agentes evaluadores</h2>
+        <div class="grid2">
+          <div class="card"><div class="st ok"></div><div class="t">Conservador</div><div class="d">Preserva capital.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Moderado</div><div class="d">Riesgo/rentabilidad equilibrado.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Alto riesgo</div><div class="d">Agresivo, mayor tolerancia.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Sensacionalista</div><div class="d">Instinto, momentum, noticias.</div></div>
+        </div>
+        <div class="card" style="margin-top:8px"><div class="st ok"></div><div class="t">Evaluador LLM (modo <code>arun</code>)</div><div class="d">Evaluación concurrente con <code>asyncio.gather</code>. DeepSeek v4-flash en runtime. Prompt incluye <code>{multi_source_context}</code> con las fuentes convergentes.</div><div class="f">agents/evaluators/* · llm/* · config/prompts/evaluators/</div></div>
+      </div>
+
+      <div class="panel z-dec">
+        <h2><span class="num">5</span> Agente decisor</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Consenso ponderado</div><div class="d">Agrega scores por pesos configurables.</div><div class="f">config/decisor_weights.yaml</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Expectancy + R/R</div><div class="d">Calibrada con memoria episódica.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">OPERATE / NO_OPERATE</div><div class="d">No-operar por defecto; plan de entrada, TP y SL.</div><div class="f">agents/decisor.py</div></div>
+        </div>
+      </div>
+
+      <div class="panel z-hitl">
+        <h2><span class="num">6</span> Aprobación humana (HITL)</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Lógica HITL + TTL</div><div class="d">Aprobar / Rechazar / Pausar 1h; timeout → no operar. Nodo LangGraph cableado con cliente real.</div><div class="f">schemas/hitl.py · graph/workflow.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Bot de Telegram</div><div class="d">Botones inline, multi-usuario, TTL async. Mock por defecto; requiere token real para runtime.</div><div class="f">connectors/telegram_bot.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Flujo TTL validado</div><div class="d">TIMEOUT → approved=False → no-operar. PAUSE_1H activa kill switch.</div><div class="f">tests/unit/test_hitl_node.py · test_connectors.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Auditoría de decisiones</div><div class="d">Toda decisión queda registrada.</div><div class="f">governance/audit_logger.py</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flowtag">▼ &nbsp; <b>decide → hitl → execute → monitor</b> &nbsp; con gobierno previo (Pre-Trade Validator + Kill Switch) &nbsp; ▼</div>
+
+    <!-- ROW 3: governance + executor + monitor -->
+    <div class="row r3">
+      <div class="panel z-risk">
+        <h2><span class="num">G</span> Gobierno previo a la orden</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Pre-Trade Validator</div><div class="d">Mercado abierto, capital, precio, negociabilidad.</div><div class="f">governance/pre_trade_validator.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Kill Switch</div><div class="d">Drawdown, pérdidas consecutivas, anomalías.</div><div class="f">governance/kill_switch.py</div></div>
+        </div>
+      </div>
+
+      <div class="panel z-exec">
+        <h2><span class="num">7</span> Agente ejecutor</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Bracket orders</div><div class="d">Entrada + Stop Loss + Take Profit; FILLED / PARTIAL.</div><div class="f">agents/executor.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">IBKR (read/write)</div><div class="d">ib_async validado en runtime paper (4002). Cortacircuitos ante Error 162 (90 s) + filtro de ruido <code>_IBWrapperNoiseFilter</code>.</div><div class="f">connectors/ibkr_read.py · ibkr_write.py</div></div>
+        </div>
+      </div>
+
+      <div class="panel z-eval">
+        <h2><span class="num">8</span> Agente de monitorización</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Seguimiento de posiciones</div><div class="d">P&amp;L, trailing, relleno parcial, disparadores.</div><div class="f">agents/monitor.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Métricas Prometheus (F6)</div><div class="d">11 métricas: pipeline + monitor (pnl_unrealized_pct, open_positions, consecutive_losses, missing_stop_loss_total, monitoring_events_total).</div><div class="f">observability/metrics.py · agents/monitor.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">EventPublisher</div><div class="d">Publica oportunidades, decisiones y ejecuciones en Redis Streams tras cada fase.</div><div class="f">messaging/streams.py · graph/workflow.py</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA & EXTERNAL -->
+    <div class="row r3">
+      <div class="panel z-data">
+        <h2><span class="num">D</span> Consultas de datos (read-only)</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Market data IBKR</div><div class="d">OHLCV, pre-market, scanner movers (NYSE + BME). Fail-fast ante Error 162 «different IP».</div><div class="f">connectors/ibkr_read.py</div></div>
+        </div>
+      </div>
+      <div class="panel z-data">
+        <h2><span class="num">E</span> Fuentes externas (vía API)</h2>
+        <div class="cards">
+          <div class="card"><div class="st part"></div><div class="t">Noticias</div><div class="d">NewsAPI · Finnhub · Marketaux (mock).</div><div class="f">connectors/news_apis.py</div></div>
+          <div class="card"><div class="st part"></div><div class="t">Redes sociales</div><div class="d">Reddit · StockTwits (mock).</div><div class="f">connectors/social_apis.py</div></div>
+        </div>
+      </div>
+      <div class="panel z-exec">
+        <h2><span class="num">IB</span> Interactive Brokers</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">IB Gateway (sin GUI)</div><div class="d">Conectado en runtime paper (4002). Scanner BME activo con suscripción «Bolsa de Madrid Plus». Error 162 gestionado.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KNOWLEDGE / MEMORY -->
+    <div class="panel z-agg">
+      <h2><span class="num">K</span> Capa de conocimiento, memoria y aprendizaje</h2>
+      <div class="grid4">
+        <div class="card"><div class="st part"></div><div class="t">Base de datos</div><div class="d">PostgreSQL/TimescaleDB con DDL (8 tablas append-only). In-memory por defecto.</div><div class="f">persistence/postgres.py · repository.py</div></div>
+        <div class="card"><div class="st part"></div><div class="t">Vector DB</div><div class="d">Qdrant para recall semántico (in-memory por defecto).</div><div class="f">memory/vector_store.py</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Memoria episódica</div><div class="d">Calibra win-prob y expectancy con el histórico.</div><div class="f">memory/episodic.py</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Track record / feedback</div><div class="d">Rendimiento por estrategia/fuente.</div><div class="f">memory/track_record.py</div></div>
+      </div>
+    </div>
+
+    <!-- INFRA & GOVERNANCE -->
+    <div class="panel z-infra">
+      <h2><span class="num">I</span> Infraestructura y gobernanza (transversal)</h2>
+      <div class="grid4">
+        <div class="card"><div class="st ok"></div><div class="t">Orquestación</div><div class="d">LangGraph completo con nodo HITL real + pipeline determinístico (run/arun).</div><div class="f">graph/workflow.py · pipeline.py</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Cola de mensajes</div><div class="d">EventPublisher + Redis Streams / InMemoryStreamBus.</div><div class="f">messaging/streams.py</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Scheduler</div><div class="d">APScheduler / SimpleScheduler.</div><div class="f">scheduler/scheduler.py</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Observabilidad</div><div class="d">Prometheus + Grafana (IaC).</div><div class="f">infra/grafana · infra/docker</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Logging / auditoría</div><div class="d">Trazabilidad inmutable de eventos.</div><div class="f">governance/audit_logger.py</div></div>
+        <div class="card"><div class="st part"></div><div class="t">Secrets &amp; Config</div><div class="d">YAML + .env; Vault / AWS Secrets Manager pendiente.</div><div class="f">config/ · k8s/secret.example.yaml</div></div>
+        <div class="card"><div class="st ok"></div><div class="t">Contenedores / K8s</div><div class="d">Docker Compose + manifiestos Kubernetes.</div><div class="f">docker-compose.yml · infra/k8s</div></div>
+        <div class="card"><div class="st no"></div><div class="t">Gobierno de IA</div><div class="d">watsonx.governance / NeuralTrust — fuera de alcance.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="side">
+      <h3>Resumen de implementación</h3>
+      <div class="kpi">
+        <div class="b"><div class="n">7/7</div><div class="l">Capas funcionales</div></div>
+        <div class="b"><div class="n">19</div><div class="l">Ficheros de test</div></div>
+        <div class="b"><div class="n">11</div><div class="l">Métricas Prom.</div></div>
+        <div class="b"><div class="n">4+1</div><div class="l">Evaluadores LLM</div></div>
+        <div class="b"><div class="n">1h</div><div class="l">Mem. multi-fuente</div></div>
+        <div class="b"><div class="n">PAPER</div><div class="l">Modo runtime</div></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <h3>Núcleo determinístico ✅</h3>
+      <ul>
+        <li><span class="k">Aggregator</span>, <span class="k">Risk Filter</span>, <span class="k">Decisor</span></li>
+        <li><span class="k">Executor</span> (bracket) y <span class="k">Monitor</span> + métricas</li>
+        <li>Gobierno: <span class="k">Pre-Trade Validator</span>, <span class="k">Kill Switch</span>, <span class="k">Audit</span></li>
+        <li>Memoria episódica y track record</li>
+        <li>Backtesting con KPIs (Sharpe, expectancy, drawdown…)</li>
+      </ul>
+    </div>
+
+    <div class="side">
+      <h3>Completado recientemente ✅</h3>
+      <ul>
+        <li><span class="k">IBKR paper</span>: Gateway real, scanner BME, OHLCV, pre-market</li>
+        <li><span class="k">Error 162</span>: cortacircuitos 90 s + filtro de ruido</li>
+        <li><span class="k">Aggregator stateful</span>: memoria rodante 1h + bonus multi-fuente</li>
+        <li><span class="k">Evaluadores LLM</span>: prompt multi_source_context (DeepSeek)</li>
+        <li><span class="k">Dashboard</span> agent_monitor: hora local en timeline y tablas</li>
+      </ul>
+    </div>
+
+    <div class="side">
+      <h3>Pendiente ⚠️</h3>
+      <ul>
+        <li><span class="k">Qdrant</span> con embeddings reales (ahora in-memory)</li>
+        <li><span class="k">Gobierno IA</span> (NeuralTrust + watsonx.governance)</li>
+        <li><span class="k">Modo LIVE</span>: cuenta real + límites de riesgo auditados</li>
+      </ul>
+      <ul style="margin-top:6px"><li>Guía: <code>docs/cableado_conectores_reales.md</code></li></ul>
+    </div>
+
+    <div class="scope">
+      <h3>Fuera de alcance ⚪</h3>
+      <span class="tag no">watsonx.governance</span>
+      <span class="tag no">NeuralTrust</span>
+      <span class="tag no">Módulo de gobierno de IA</span>
+    </div>
+
+    <div class="scope">
+      <h3>Principios de diseño</h3>
+      <div style="color:var(--muted);font-size:12px">
+        No-operar por defecto · Ejecución determinística · Human-in-the-loop ·
+        Gobierno y trazabilidad por diseño.
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="foot">
+  Documento autocontenido (sin dependencias externas). Estado validado en runtime PAPER (IB Gateway 4002 · DeepSeek v4-flash) — agosto 2026.
+  Complementa a <code>docs/arquitectura.html</code> (arquitectura lógica, infraestructura, animación y estructura).
+</div>
+</body>
+</html>
