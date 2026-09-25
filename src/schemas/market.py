@@ -71,4 +71,5 @@ class Fundamentals(BaseModel):
     beta: float | None = None
     week52_high: float | None = None
     week52_low: float | None = None
+    current_price: float | None = None
     sector: str | None = None

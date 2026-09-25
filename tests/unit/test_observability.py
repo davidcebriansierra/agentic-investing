@@ -37,4 +37,51 @@ def test_build_searchers_returns_six():
 def test_application_registers_jobs():
     app = Application()
     app._register_jobs()
-    assert len(app.scheduler.jobs()) == 6
+    jobs = app.scheduler.jobs()
+    assert len(jobs) == 7  # 6 buscadores + monitor
+    assert any(j.job_id == "monitor" for j in jobs)
+
+
+async def test_approve_applies_edited_prices():
+    """Regresion: _approve aplica los precios editados en el HITL al MISMO opp que ejecuta
+    el pipeline; antes se descartaban y la orden salia con los valores originales."""
+    from src.connectors.telegram_bot import MockHITLClient
+    from src.schemas.decision import Decision
+    from src.schemas.enums import DecisionReason, DecisionType
+    from src.schemas.hitl import ApprovalDecision, EditedPrices
+    from tests.conftest import make_opportunity
+
+    app = Application()
+    app.hitl = MockHITLClient(
+        default_decision=ApprovalDecision.APPROVE,
+        edited_prices=EditedPrices(entry_price=13.00, stop_loss=12.60, take_profit=13.60),
+    )
+    opp = make_opportunity(entry=12.45, tp=12.95, sl=12.20)
+    decision = Decision(
+        opportunity_id=opp.opportunity_id, final_score=0.8, expectancy_pct=1.2,
+        risk_reward_ratio=2.0, decision=DecisionType.OPERATE,
+        reason=DecisionReason.CONSENSUS_REACHED,
+    )
+    approved = await app._approve(decision, opp)
+    assert approved is True
+    assert opp.entry_price == 13.00 and opp.stop_loss == 12.60 and opp.take_profit == 13.60
+
+
+async def test_approve_keeps_original_prices_without_edits():
+    """Sin edicion, _approve no toca los precios de la oportunidad."""
+    from src.connectors.telegram_bot import MockHITLClient
+    from src.schemas.decision import Decision
+    from src.schemas.enums import DecisionReason, DecisionType
+    from src.schemas.hitl import ApprovalDecision
+    from tests.conftest import make_opportunity
+
+    app = Application()
+    app.hitl = MockHITLClient(default_decision=ApprovalDecision.APPROVE)
+    opp = make_opportunity(entry=12.45, tp=12.95, sl=12.20)
+    decision = Decision(
+        opportunity_id=opp.opportunity_id, final_score=0.8, expectancy_pct=1.2,
+        risk_reward_ratio=2.0, decision=DecisionType.OPERATE,
+        reason=DecisionReason.CONSENSUS_REACHED,
+    )
+    assert await app._approve(decision, opp) is True
+    assert opp.entry_price == 12.45 and opp.stop_loss == 12.20 and opp.take_profit == 12.95

@@ -52,6 +52,51 @@ def _parse_twitter_ts(value: str | None) -> datetime:
         return datetime.now(timezone.utc)
 
 
+# Frases tipicas de spam cripto/airdrop y de engagement-bait que contaminan la senal
+# social. Se comparan en minusculas contra el texto del tweet.
+_JUNK_PHRASES = (
+    "sniper",                         # "sniper alert/bot" (cripto)
+    "portal open",                    # airdrop / claim portal
+    "portal is open",
+    "claim portal",
+    "self-custody",
+    "self custody",
+    "move tokens",
+    "move your tokens",
+    "redemption plan",
+    "airdrop",
+    "presale",
+    "pre-sale",
+    "whitelist",
+    "sharing my trading experience",  # engagement-bait / get-rich
+    "turning my initial",
+)
+# Direccion de contrato (0x + hex): marcador inequivoco de scam cripto.
+_CONTRACT_ADDR_RE = re.compile(r"0x[0-9a-f]{6,}")
+# Cashtag: "$" seguido de letra (ignora importes como "$70" o "$10,000").
+_CASHTAG_RE = re.compile(r"\$[A-Z][A-Z0-9]*")
+# A partir de este numero de cashtags DISTINTOS el tweet es un volcado de simbolos (spam);
+# los tweets legitimos suelen citar 1-2 tickers.
+_CASHTAG_FLOOD = 5
+
+
+def _is_junk(text_upper: str, text_lower: str) -> bool:
+    """Pre-filtro heuristico: True si el tweet es spam y debe descartarse.
+
+    Cubre tres familias de ruido que degradan la senal del SocialSearcher:
+    frases de scam cripto/airdrop o engagement-bait, direcciones de contrato ``0x...`` y
+    volcados de cashtags (listas de simbolos sin contenido). Recibe el texto ya en
+    mayusculas y minusculas (el llamador las calcula una vez por tweet).
+    """
+    if any(phrase in text_lower for phrase in _JUNK_PHRASES):
+        return True
+    if _CONTRACT_ADDR_RE.search(text_lower):
+        return True
+    if len(set(_CASHTAG_RE.findall(text_upper))) >= _CASHTAG_FLOOD:
+        return True
+    return False
+
+
 class SocialClient(Protocol):
     async def fetch(self, tickers: list[str] | None = None, since_minutes: int = 30) -> list[SocialPost]: ...
 
@@ -203,7 +248,7 @@ class ApifySocialClient:
                 else None
             )
             matchers.append((orig, cashtag, cashtag_re, token_re))
-        dropped_empty = dropped_no_mention = older_than_window = 0
+        dropped_empty = dropped_no_mention = older_than_window = dropped_junk = 0
         for item in items:
             if not isinstance(item, dict):
                 continue
@@ -212,10 +257,17 @@ class ApifySocialClient:
                 dropped_empty += 1
                 continue
 
+            text_upper = text.upper()
+            text_lower = text.lower()
+            # Pre-filtro de spam (memecoins/airdrops, scam cripto, volcado de cashtags):
+            # descartar antes de emparejar tickers para no contaminar la senal social.
+            if _is_junk(text_upper, text_lower):
+                dropped_junk += 1
+                continue
+
             # ¿Que tickers del lote menciona este tweet? Un tweet puede citar varios;
             # se etiqueta con todos los que coincidan (cashtag con frontera o, para
             # simbolos de 2+ chars, el simbolo suelto como palabra).
-            text_upper = text.upper()
             mentioned_tickers: list[str] = []
             matched_cashtags: list[str] = []
             for orig, cashtag, cashtag_re, token_re in matchers:
@@ -239,7 +291,6 @@ class ApifySocialClient:
 
             # Sentimiento simple basado en heurísticas (puede mejorarse con LLM)
             sentiment_score = 0.0
-            text_lower = text.lower()
             bullish_words = ["bullish", "buy", "long", "moon", "rocket", "pump", "strong", "up"]
             bearish_words = ["bearish", "sell", "short", "dump", "crash", "weak", "down", "bad"]
             bullish_count = sum(1 for word in bullish_words if word in text_lower)
@@ -263,8 +314,8 @@ class ApifySocialClient:
                 )
             )
         logger.info(
-            "Apify Twitter [%d cashtags]: %d items -> %d posts (vacios=%d, sin_mencion=%d, fuera_de_ventana=%d)",
-            len(cashtags), len(items), len(out), dropped_empty, dropped_no_mention, older_than_window,
+            "Apify Twitter [%d cashtags]: %d items -> %d posts (vacios=%d, spam=%d, sin_mencion=%d, fuera_de_ventana=%d)",
+            len(cashtags), len(items), len(out), dropped_empty, dropped_junk, dropped_no_mention, older_than_window,
         )
         return out
 

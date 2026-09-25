@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 from typing import Protocol
 
+from src.connectors.ibkr_contracts import make_stock_contract
 from src.schemas.enums import ExecutionStatus, OrderAction
 from src.schemas.order import ExecutionResult, Order
 
@@ -74,31 +75,17 @@ class IBKRBrokerClient:
         await self.ib.connectAsync(self.host, self.port, clientId=self.client_id)
 
     async def place_bracket_order(self, order: Order) -> ExecutionResult:  # pragma: no cover
-        from ib_async import LimitOrder, StopOrder, Stock
+        from ib_async import Stock
 
-        _parts = order.ticker.split(".")
-        _EXCHANGE_SUFFIXES = {"MC", "L", "PA", "DE", "AS", "MI", "SW", "HK", "TO", "AX"}
-        if len(_parts) == 2 and _parts[1].upper() not in _EXCHANGE_SUFFIXES:
-            # Clase de accion (BRK.B, BF.B): en IBKR el symbol es 'BRK B' (con espacio)
-            contract = Stock(f"{_parts[0]} {_parts[1]}", "SMART", "USD")
-        else:
-            contract = Stock(_parts[0], "SMART", "USD")
-        close_action = "SELL" if order.action == OrderAction.BUY else "BUY"
+        # Mismo contrato que el conector de lectura: BME (*.MC) -> EUR/primaryExchange 'BM',
+        # multi-clase 'BRK B', resto US. Evita enviar ordenes IBEX con contrato USD/SMART.
+        contract = make_stock_contract(order.ticker, Stock)
 
-        # tif="GTC" + outsideRth=True evitan la cancelacion (Error 10349) cuando
-        # se envia fuera del horario regular de mercado (RTH).
-        parent = LimitOrder(
-            order.action.value, order.quantity, order.entry.price,
-            transmit=False, account=self.account, tif="GTC", outsideRth=True,
-        )
-        tp = LimitOrder(
-            close_action, order.quantity, order.take_profit.price,
-            parentId=parent.orderId, transmit=False, tif="GTC", outsideRth=True,
-        )
-        sl = StopOrder(
-            close_action, order.quantity, order.stop_loss.price,
-            parentId=parent.orderId, transmit=True, tif="GTC", outsideRth=True,
-        )
+        # El parentId de TP/SL debe fijarse ANTES de colocar el parent: se reserva aqui el
+        # orderId del parent (getReqId) y se construyen las 3 patas ya enlazadas. Ver
+        # _build_bracket_orders para el detalle del fallo que esto corrige.
+        parent_id = self.ib.client.getReqId()
+        parent, tp, sl = self._build_bracket_orders(order, parent_id)
         await self.ib.qualifyContractsAsync(contract)
         trades = [self.ib.placeOrder(contract, o) for o in (parent, tp, sl)]
         await asyncio.sleep(1)
@@ -115,6 +102,36 @@ class IBKRBrokerClient:
             commission=commission or None,
             raw_ibkr_response=str(parent_trade.orderStatus),
         )
+
+    def _build_bracket_orders(self, order: Order, parent_id: int):
+        """Construye las 3 patas del bracket (entrada + TP + SL) enlazadas por parentId.
+
+        CLAVE del bug corregido: el `parentId` de TP y SL debe apuntar al `orderId` del
+        parent, que hay que fijar ANTES (via getReqId) porque al construir las ordenes su
+        orderId aun es 0. Si se dejara en 0, IBKR trataria TP y SL como ordenes sueltas y,
+        al transmitir el SL (transmit=True), enviaria SOLO el stop, dejando un stop
+        huerfano sin la compra ni el take-profit asociados. tif='GTC' + outsideRth=True
+        evitan la cancelacion (Error 10349) fuera del horario regular (RTH).
+        """
+        from ib_async import LimitOrder, StopOrder
+
+        close_action = "SELL" if order.action == OrderAction.BUY else "BUY"
+        parent = LimitOrder(
+            order.action.value, order.quantity, order.entry.price,
+            orderId=parent_id, transmit=False, account=self.account,
+            tif="GTC", outsideRth=True,
+        )
+        tp = LimitOrder(
+            close_action, order.quantity, order.take_profit.price,
+            parentId=parent_id, transmit=False, account=self.account,
+            tif="GTC", outsideRth=True,
+        )
+        sl = StopOrder(
+            close_action, order.quantity, order.stop_loss.price,
+            parentId=parent_id, transmit=True, account=self.account,
+            tif="GTC", outsideRth=True,
+        )
+        return parent, tp, sl
 
     @staticmethod
     def _map_status(ib_status: str, fills: list) -> ExecutionStatus:  # pragma: no cover

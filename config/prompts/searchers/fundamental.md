@@ -10,9 +10,11 @@ atractiva, momentum de beneficios, catalizadores) para un horizonte MULTIDAY. De
 entrada, take-profit y stop-loss coherentes con la tesis y una relacion riesgo/beneficio
 >= 2. Aplica "no operar por defecto": sin una tesis solida, no propongas nada.
 
-Nota: el contexto puede ser limitado (solo precio y volumen, sin ratios ni estados
-financieros). No inventes fundamentales que no aparezcan; si los datos son insuficientes
-para una tesis solida, no propongas nada.
+Nota: cada ticker incluye el campo `price` con el precio actual de mercado. Usa ese valor
+como referencia obligatoria para `entry_price` (puede diferir ligeramente por slippage,
+pero debe estar proxima al precio actual, no al maximo o minimo de 52 semanas). No
+inventes fundamentales que no aparezcan; si los datos son insuficientes para una tesis
+solida, no propongas nada.
 
 Contexto (fundamentales / mercado):
 {market_context}

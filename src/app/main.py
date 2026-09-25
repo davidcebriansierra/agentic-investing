@@ -12,6 +12,7 @@ import logging
 import signal
 
 import os
+from datetime import datetime, timezone
 
 from src.agents.executor import Executor
 from src.governance.audit_logger import build_audit_logger
@@ -39,10 +40,10 @@ from src.messaging.streams import EventPublisher, InMemoryStreamBus, MessageBus,
 from src.observability.metrics import get_metrics
 from src.persistence.postgres import PostgresRepository
 from src.persistence.repository import InMemoryRepository, Repository
-from src.scheduler.scheduler import SimpleScheduler
+from src.scheduler.scheduler import SimpleScheduler, within_trading_window
 from src.schemas.decision import Decision
 from src.schemas.enums import Exchange
-from src.schemas.hitl import ApprovalDecision
+from src.schemas.hitl import ApprovalDecision, EditedPrices
 from src.schemas.opportunity import Opportunity
 from src.schemas.portfolio import Portfolio
 from src.utils.config import get_config
@@ -53,6 +54,10 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 logger = logging.getLogger("agentic.app")
+
+# Fuera de la ventana operativa, los jobs se sondean con esta cadencia (segundos) para
+# reanudar con prontitud al abrirse la ventana, sin esperar el intervalo completo del job.
+_PAUSED_POLL_SECONDS = 60
 
 
 def build_searchers(
@@ -204,6 +209,12 @@ class Application:
         # Canal de aprobacion humana (HITL): Telegram real o mock (TIMEOUT=no operar).
         self.hitl = build_hitl_client(self.config)
         self._stop = asyncio.Event()
+        # Estado del monitor: ancla de equity al inicio de sesion (para el drawdown
+        # intradia) y contador de perdidas consecutivas (a actualizar cuando se cablee
+        # el feedback de resultados de trades).
+        self._equity_day_open: float | None = None
+        self._equity_day = None
+        self._consecutive_losses = 0
 
     def _portfolio(self) -> Portfolio:
         equity = float(self.config.get("system", {}).get("initial_equity", 100_000.0))
@@ -220,11 +231,30 @@ class Application:
             self.kill_switch.activate("hitl_pause_1h")
             self._schedule_resume(3600)
             logger.warning("HITL: pausa de 1h solicitada; kill switch activado.")
+        if response.approved and response.edited_prices is not None:
+            self._apply_edited_prices(opp, response.edited_prices)
         logger.info(
             "HITL %s -> %s (por %s)",
             opp.ticker, response.decision.value, response.responder or "-",
         )
         return response.approved
+
+    @staticmethod
+    def _apply_edited_prices(opp: Opportunity, edited: EditedPrices) -> None:
+        """Aplica a la oportunidad los precios editados por el operador en el HITL.
+
+        El pipeline (`DecisionPipeline._aprocess_one`) pasa el MISMO objeto `opp` al
+        callback de ejecucion, asi que mutarlo aqui hace que la orden se construya con los
+        valores editados (entrada/SL/TP). Antes se descartaban y la orden salia con los
+        precios originales.
+        """
+        opp.entry_price = edited.entry_price
+        opp.stop_loss = edited.stop_loss
+        opp.take_profit = edited.take_profit
+        logger.info(
+            "HITL: precios editados aplicados a %s (entry=%s SL=%s TP=%s)",
+            opp.ticker, edited.entry_price, edited.stop_loss, edited.take_profit,
+        )
 
     def _schedule_resume(self, seconds: int) -> None:
         """Reactiva el trading (desactiva el kill switch) tras `seconds` segundos."""
@@ -275,6 +305,36 @@ class Application:
             if not state.risk_pass:
                 self.metrics.risk_rejections_total.inc()
 
+    async def _monitor_tick(self) -> None:
+        """Revision periodica de riesgo: P&L no realizado, stop-loss y kill switch.
+
+        Lee la cartera real (fallback al stub si el conector falla), registra el P&L no
+        realizado, marca posiciones sin stop-loss y evalua el kill switch con el drawdown
+        intradia (equity actual frente al de apertura de la sesion).
+        """
+        try:
+            portfolio = await self.market_data.get_portfolio()
+        except Exception as exc:  # noqa: BLE001 - sin cartera no aborta el monitor
+            logger.debug("monitor: no se pudo leer la cartera (%s); usando fallback.", exc)
+            portfolio = self._portfolio()
+
+        # Ancla el equity de apertura y lo resetea al cambiar de dia (UTC).
+        today = datetime.now(timezone.utc).date()
+        if self._equity_day != today or self._equity_day_open is None:
+            self._equity_day = today
+            self._equity_day_open = portfolio.total_equity
+
+        self.monitor.review_pnl(portfolio)
+        self.monitor.check_stop_losses(portfolio)
+
+        drawdown = Monitor.intraday_drawdown_pct(self._equity_day_open, portfolio.total_equity)
+        event = self.monitor.evaluate_kill_switch(
+            intraday_drawdown_pct=drawdown,
+            consecutive_losses=self._consecutive_losses,
+        )
+        if event is not None:
+            logger.warning("monitor: kill switch activado (%s).", event.data.get("reason"))
+
     def _register_jobs(self) -> None:
         for searcher in self.searchers:
             async def runner(s=searcher) -> None:
@@ -293,21 +353,33 @@ class Application:
                 searcher.interval_minutes,
             )
 
+        monitor_interval = float(self.config.get("monitor", {}).get("interval_minutes", 15))
+        self.scheduler.add_job("monitor", monitor_interval, self._monitor_tick)
+        logger.info("Registrado monitor cada %s min", monitor_interval)
+
     async def _job_loop(self, job) -> None:
-        """Bucle periodico para un job: ejecuta inmediatamente y luego cada interval_minutes."""
+        """Bucle periodico para un job.
+
+        Ejecuta el job y luego espera `interval_minutes`. Si hay una ventana operativa
+        configurada (`trading_window`) y el instante actual queda fuera, el job se pausa:
+        no se ejecuta y el bucle sondea cada `_PAUSED_POLL_SECONDS` para reanudar en cuanto
+        se abra la ventana.
+        """
         while not self._stop.is_set():
+            if within_trading_window(self.config):
+                try:
+                    logger.debug("Ejecutando job %s", job.job_id)
+                    await self.scheduler.run_job(job.job_id)
+                except Exception as exc:  # noqa: BLE001
+                    logger.exception("Error en job %s: %s", job.job_id, exc)
+                wait_seconds = job.interval_minutes * 60
+            else:
+                logger.debug("Fuera de ventana operativa; job %s en pausa.", job.job_id)
+                wait_seconds = min(job.interval_minutes * 60, _PAUSED_POLL_SECONDS)
             try:
-                logger.debug("Ejecutando job %s", job.job_id)
-                await self.scheduler.run_job(job.job_id)
-            except Exception as exc:  # noqa: BLE001
-                logger.exception("Error en job %s: %s", job.job_id, exc)
-            try:
-                await asyncio.wait_for(
-                    self._stop.wait(),
-                    timeout=job.interval_minutes * 60,
-                )
+                await asyncio.wait_for(self._stop.wait(), timeout=wait_seconds)
             except asyncio.TimeoutError:
-                pass  # intervalo cumplido, siguiente iteracion
+                pass  # intervalo/sondeo cumplido, siguiente iteracion
 
     def _start_jobs(self) -> None:
         """Lanza una coroutine asyncio por cada job registrado."""
@@ -329,6 +401,17 @@ class Application:
             logger.info("Endpoint de metricas en %s:%s/metrics", metrics_addr, metrics_port)
         else:
             logger.warning("prometheus_client no disponible: metricas deshabilitadas")
+
+        window = self.config.get("trading_window", {})
+        if window.get("enabled", False):
+            logger.info(
+                "Ventana operativa: %s-%s %s (%s). Fuera de ella el sistema se pausa por completo.",
+                window.get("start", "08:30"), window.get("end", "22:00"),
+                "L-V" if window.get("weekdays_only", True) else "todos los dias",
+                window.get("timezone", "Europe/Madrid"),
+            )
+        else:
+            logger.info("Sin ventana operativa configurada: el sistema opera 24/7.")
 
         await self._connect_clients()
         await self._start_hitl()

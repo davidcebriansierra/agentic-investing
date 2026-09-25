@@ -3,6 +3,17 @@ system:
   version: "2.0.0"
   trading_mode: PAPER   # PAPER | LIVE
 
+# Ventana operativa: el sistema SOLO busca, decide y opera dentro de este horario (hora
+# local). Fuera de la ventana TODOS los jobs (buscadores y monitor) se pausan por completo.
+# Con weekdays_only=true y 08:30-22:00, el sistema queda pausado del viernes 22:00 al
+# lunes 08:30 (y cada noche de 22:00 a 08:30).
+trading_window:
+  enabled: true
+  timezone: "Europe/Madrid"
+  start: "08:30"          # inicio inclusive
+  end: "22:00"            # fin exclusivo
+  weekdays_only: true     # solo lunes a viernes
+
 markets:
   - id: IBEX35
     exchange: BME
@@ -28,6 +39,9 @@ searchers:
   premarket:      { interval_minutes: 5, lead_minutes: 10, post_open_minutes: 10, top_movers: 20, gap_batch_size: 20, min_gap_pct: 1.0 }   # 2 fases: preopen [apertura-lead, apertura) usa subasta/pre-market; postopen [apertura, apertura+post_open) usa el gap de apertura REAL (y el scanner ya funciona). El scanner no da movers en preopen (sesion cerrada): fallback calcula el gap directo sobre un lote rotatorio de gap_batch_size tickers (2 req IBKR/ticker; ojo pacing 60/10min) y toma los de |gap|>=min_gap_pct%
   technical:      { interval_minutes: 10, ohlcv_bars: 60, ohlcv_interval: "5 mins", batch_size: 50 }   # rota 50 tickers/ciclo (<=60 por pacing IBKR); revisita cada ~100 min
   fundamental:    { interval_minutes: 30, batch_size: 35 }   # rota 35 tickers/ejecucion; cubre las 508 en ~23h (48 runs/dia)
+
+monitor:
+  interval_minutes: 15   # revision periodica de riesgo: P&L no realizado, stop-loss por posicion y kill switch (drawdown intradia)
 
 # Universo de tickers vigilado por los buscadores (IBEX35 sufijo .MC, S&P500 sin sufijo).
 watchlist:
@@ -542,7 +556,7 @@ watchlist:
 
 hitl:
   channel: telegram
-  approval_ttl_seconds: 300
+  approval_ttl_seconds: 600
   buttons: ["approve", "reject", "pause_1h"]
 
 monitoring:

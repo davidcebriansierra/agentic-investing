@@ -11,10 +11,11 @@ import logging
 import time
 from typing import Protocol
 
+from src.connectors.ibkr_contracts import BME_SYMBOL_TO_BASE, make_stock_contract
 from src.governance.pre_trade_validator import MarketContext
-from src.schemas.enums import Exchange
+from src.schemas.enums import Direction, Exchange
 from src.schemas.market import OHLCVBar, PremarketSnapshot, Quote
-from src.schemas.portfolio import Portfolio
+from src.schemas.portfolio import Portfolio, Position
 
 logger = logging.getLogger("agentic.connectors.ibkr")
 
@@ -236,40 +237,109 @@ class IBKRMarketDataClient:
                 equity = float(item.value)
             elif item.tag == "AvailableFunds":
                 cash = float(item.value)
-        return Portfolio(total_equity=equity, cash=cash)
+        try:
+            # Puebla el cache con las ordenes de TODOS los client IDs (los stops los coloca
+            # el cliente de escritura, con client_id distinto al de lectura).
+            await self.ib.reqAllOpenOrdersAsync()
+        except Exception as exc:  # noqa: BLE001 - sin ordenes no aborta la lectura de cartera
+            logger.debug("IBKR: reqAllOpenOrdersAsync fallo (%s).", exc)
+        stops = self._stop_losses_from_trades(self.ib.openTrades())
+        positions = self._positions_from_items(self.ib.portfolio(), stops)
+        return Portfolio(total_equity=equity, cash=cash, positions=positions)
 
-    # Tickers *.MC cuyo contrato en IBKR difiere del codigo BME usado en config.
-    # Formato: "BASE" -> (IBKR_SYMBOL, PRIMARY_EXCHANGE). Por defecto, el resto de
-    # tickers *.MC usan (base, "BM"). Solo se usa al CONSTRUIR contratos (_make_contract).
-    # ArcelorMittal resuelve por su listado primario en Euronext Amsterdam (symbol MT,
-    # exchange AEB), no por la linea de Madrid. Indra ya es IDR en BME (= watchlist IDR.MC),
-    # asi que no necesita override.
-    _BME_CONTRACT_OVERRIDES: dict[str, tuple[str, str]] = {
-        "MTS": ("MT", "AEB"),   # ArcelorMittal: listado primario en Amsterdam (MT.AS)
-    }
+    def _contract_to_ticker(self, contract) -> str:
+        """Reconstruye el ticker de la watchlist desde un contrato IBKR (inverso de _make_contract).
+
+        BME (moneda EUR) -> base + '.MC', deshaciendo los overrides (MT -> MTS). US ->
+        symbol con el espacio de multi-clase pasado a punto ('BRK B' -> 'BRK.B').
+        """
+        symbol = getattr(contract, "symbol", "") or ""
+        currency = getattr(contract, "currency", "USD")
+        if currency == "EUR":
+            return f"{self._BME_SYMBOL_TO_BASE.get(symbol, symbol)}.MC"
+        return symbol.replace(" ", ".")
+
+    def _positions_from_items(
+        self, items, stops: dict[str, float] | None = None
+    ) -> list[Position]:
+        """Convierte los PortfolioItem de ib_async en posiciones del dominio.
+
+        Filtra lo que no sea accion, la cantidad nula y los precios no positivos
+        (posiciones sin dato de mercado). El signo de la cantidad define la direccion
+        (negativo = SHORT). El `stop_loss` se toma del mapa `stops` (ticker -> precio),
+        proveniente de las ordenes stop abiertas en IBKR.
+        """
+        stops = stops or {}
+        positions: list[Position] = []
+        for item in items:
+            contract = getattr(item, "contract", None)
+            if contract is None or getattr(contract, "secType", "STK") not in ("STK", ""):
+                continue
+            quantity = int(getattr(item, "position", 0) or 0)
+            avg_price = float(getattr(item, "averageCost", 0.0) or 0.0)
+            market_price = float(getattr(item, "marketPrice", 0.0) or 0.0)
+            if quantity == 0 or avg_price <= 0 or market_price <= 0:
+                continue
+            ticker = self._contract_to_ticker(contract)
+            positions.append(Position(
+                ticker=ticker,
+                direction=Direction.LONG if quantity > 0 else Direction.SHORT,
+                quantity=abs(quantity),
+                avg_price=avg_price,
+                market_price=market_price,
+                stop_loss=stops.get(ticker),
+            ))
+        return positions
+
+    # Estados de orden que IBKR considera vivos (con proteccion de stop aun activa).
+    _ACTIVE_ORDER_STATUS = frozenset(
+        {"PendingSubmit", "PreSubmitted", "Submitted", "ApiPending"}
+    )
+
+    def _stop_losses_from_trades(self, trades) -> dict[str, float]:
+        """Mapa ticker -> precio de stop a partir de las ordenes stop abiertas en IBKR.
+
+        Reconoce STP y STP LMT (precio en `auxPrice`) y TRAIL (precio en `trailStopPrice`,
+        con respaldo en `auxPrice`). Ignora ordenes ya inactivas y precios no positivos.
+        Si un ticker tiene varias, conserva la ultima vista.
+        """
+        stops: dict[str, float] = {}
+        for trade in trades:
+            order = getattr(trade, "order", None)
+            contract = getattr(trade, "contract", None)
+            if order is None or contract is None:
+                continue
+            status = getattr(getattr(trade, "orderStatus", None), "status", "")
+            if status and status not in self._ACTIVE_ORDER_STATUS:
+                continue
+            order_type = str(getattr(order, "orderType", "")).upper()
+            if order_type in ("STP", "STP LMT"):
+                price = float(getattr(order, "auxPrice", 0.0) or 0.0)
+            elif order_type == "TRAIL":
+                price = float(
+                    getattr(order, "trailStopPrice", 0.0)
+                    or getattr(order, "auxPrice", 0.0)
+                    or 0.0
+                )
+            else:
+                continue
+            if price <= 0:
+                continue
+            stops[self._contract_to_ticker(contract)] = price
+        return stops
+
+    # Inverso de los overrides de contrato BME (symbol IBKR -> base watchlist), usado por
+    # _contract_to_ticker al leer posiciones. Fuente unica en connectors.ibkr_contracts.
+    _BME_SYMBOL_TO_BASE = BME_SYMBOL_TO_BASE
 
     def _make_contract(self, ticker: str):
         """Construye el contrato IBKR correcto segun el mercado del ticker.
 
-        - Tickers BME (*.MC): exchange SMART, moneda EUR, primaryExchange='BM'
-          (salvo overrides en _BME_CONTRACT_OVERRIDES).
-        - Tickers multi-clase (BRK.B, BF.B): symbol=parte-base localSymbol='BRK B'.
-        - Resto USD: symbol directo.
+        Delega en `ibkr_contracts.make_stock_contract` (fuente unica compartida con el
+        conector de escritura) para que datos y ordenes usen exactamente el mismo contrato:
+        BME (*.MC) -> EUR/primaryExchange 'BM' (salvo overrides), multi-clase 'BRK B', US.
         """
-        _EXCHANGE_SUFFIXES = {"MC", "L", "PA", "DE", "AS", "MI", "SW", "HK", "TO", "AX"}
-        parts = ticker.split(".")
-        suffix = parts[1].upper() if len(parts) == 2 else ""
-        is_bme = suffix == "MC"
-        is_exchange_suffix = suffix in _EXCHANGE_SUFFIXES
-        if is_bme:
-            base = parts[0]
-            ibkr_sym, primary = self._BME_CONTRACT_OVERRIDES.get(base, (base, "BM"))
-            return self._Stock(ibkr_sym, "SMART", "EUR", primaryExchange=primary)
-        if len(parts) == 2 and not is_exchange_suffix:
-            # Clase de accion (BRK.B, BF.B): en IBKR el symbol es 'BRK B' (con espacio)
-            ibkr_sym = f"{parts[0]} {parts[1]}"
-            return self._Stock(ibkr_sym, "SMART", "USD")
-        return self._Stock(ticker if is_exchange_suffix else parts[0], "SMART", "USD")
+        return make_stock_contract(ticker, self._Stock)
 
     # Mapa de nombre legible -> (symbol, exchange, currency) para indices IBKR.
     _INDEX_CONTRACTS: dict[str, tuple[str, str, str]] = {

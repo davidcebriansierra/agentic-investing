@@ -70,6 +70,25 @@ def build_request(decision: Decision, opp: Opportunity, ttl_seconds: int = 300) 
     )
 
 
+def _geometry_error(
+    entry_price: float, stop_loss: float, take_profit: float, is_long: bool
+) -> str | None:
+    """Valida la geometria de precios editados; devuelve un mensaje de error o None si es OK.
+
+    Coincide con `Opportunity._validate_bracket_geometry`: LONG exige
+    stop_loss < entrada < take_profit; SHORT exige take_profit < entrada < stop_loss. Evita
+    confirmar ordenes con geometria incoherente (p. ej. un stop por encima de la entrada en
+    una compra), que el broker rechazaria o dejaria en un estado inconsistente.
+    """
+    if is_long:
+        if not (stop_loss < entry_price < take_profit):
+            return "En LONG debe cumplirse: Stop-Loss &lt; Entrada &lt; Take-Profit."
+    else:
+        if not (take_profit < entry_price < stop_loss):
+            return "En SHORT debe cumplirse: Take-Profit &lt; Entrada &lt; Stop-Loss."
+    return None
+
+
 class HITLClient(Protocol):
     async def request_approval(self, request: ApprovalRequest) -> ApprovalResponse: ...
 
@@ -245,7 +264,25 @@ class TelegramHITLClient:
                 f"Introduce {_EDIT_LABELS[next_field]} (actual: {current_val}):"
             )
         else:
-            # Todos los campos recibidos -> mostrar resumen y pedir confirmacion
+            # Todos los campos recibidos -> validar geometria antes de confirmar. La
+            # direccion se infiere de la geometria original (siempre coherente).
+            is_long = state.request.take_profit > state.request.entry_price
+            geo_err = _geometry_error(
+                state.values["entry_price"], state.values["stop_loss"],
+                state.values["take_profit"], is_long,
+            )
+            if geo_err is not None:
+                # Reiniciar la edicion: el operador reintroduce desde el primer campo.
+                state.values.clear()
+                state.step = 0
+                first_field = _EDIT_FIELDS[0]
+                await update.message.reply_text(
+                    f"⚠️ {geo_err}\nVuelve a introducir {_EDIT_LABELS[first_field]} "
+                    f"(actual: {getattr(state.request, first_field)}):",
+                    parse_mode="HTML",
+                )
+                return
+            # Geometria valida -> mostrar resumen y pedir confirmacion.
             del self._edit_states[user_id]
             summary = (
                 f"✏️ <b>Precios editados para {state.request.ticker}:</b>\n"

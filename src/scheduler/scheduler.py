@@ -6,8 +6,12 @@ manualmente (util en tests y shadow mode). `build_apscheduler()` crea un
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import datetime, time as dtime
+
+logger = logging.getLogger("agentic.scheduler")
 
 JobFn = Callable[[], Awaitable[None]] | Callable[[], None]
 
@@ -62,3 +66,61 @@ def build_apscheduler():  # pragma: no cover - requiere el extra infra
             "APScheduler no esta instalado. Instala el extra: pip install -e .[infra]"
         ) from exc
     return AsyncIOScheduler()
+
+
+def _parse_hhmm(value: str) -> dtime:
+    """Convierte 'HH:MM' en un datetime.time."""
+    hours, minutes = value.strip().split(":")
+    return dtime(int(hours), int(minutes))
+
+
+def _now_in_timezone(tz_name: str) -> datetime:
+    """Hora actual en la zona indicada.
+
+    Usa `zoneinfo` (stdlib). En Windows la base de datos IANA la aporta el paquete
+    `tzdata`; si no esta disponible, degrada a la hora local del sistema (naive) con un
+    aviso. Como la maquina ya suele estar en la zona deseada, el fallback es razonable.
+    """
+    try:
+        from zoneinfo import ZoneInfo
+
+        return datetime.now(ZoneInfo(tz_name))
+    except Exception as exc:  # noqa: BLE001 - ZoneInfoNotFoundError u otros
+        logger.warning(
+            "No se pudo cargar la zona horaria '%s' (%s); usando la hora local del "
+            "sistema. Instala 'tzdata' para un manejo correcto de DST en Windows.",
+            tz_name, exc,
+        )
+        return datetime.now()
+
+
+def within_trading_window(config: dict | None, now: datetime | None = None) -> bool:
+    """Indica si el instante actual cae dentro de la ventana operativa configurada.
+
+    Config esperada bajo la clave `trading_window`:
+        enabled: bool          # si False -> siempre True (sin restriccion horaria)
+        timezone: str          # p.ej. "Europe/Madrid"
+        start: "HH:MM"         # inicio de la ventana (inclusive)
+        end: "HH:MM"           # fin de la ventana (exclusivo)
+        weekdays_only: bool    # si True, solo de lunes a viernes
+
+    `now` permite inyectar el instante (para tests); si es None se calcula en la zona
+    configurada. Soporta ventanas que cruzan medianoche (start > end).
+    """
+    window = (config or {}).get("trading_window") or {}
+    if not window.get("enabled", False):
+        return True
+
+    if now is None:
+        now = _now_in_timezone(str(window.get("timezone", "Europe/Madrid")))
+
+    if window.get("weekdays_only", True) and now.weekday() >= 5:  # 5=sabado, 6=domingo
+        return False
+
+    start = _parse_hhmm(str(window.get("start", "08:30")))
+    end = _parse_hhmm(str(window.get("end", "22:00")))
+    current = now.time()
+    if start <= end:
+        return start <= current < end
+    # Ventana que cruza medianoche (p.ej. 22:00 -> 06:00).
+    return current >= start or current < end

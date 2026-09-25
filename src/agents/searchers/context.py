@@ -147,6 +147,7 @@ def format_cross_market_context(
 def format_fundamentals_context(items: list[Fundamentals], limit: int | None = None) -> str:
     """Formatea fundamentales por ticker, omitiendo metricas no disponibles."""
     fields = (
+        ("price", "current_price"),
         ("mkt_cap(M)", "market_cap"),
         ("PER", "pe_ratio"),
         ("PEG", "peg_ratio"),

@@ -4,7 +4,7 @@ weights:
   high_risk: 0.30
   sensationalist: 0.10
 thresholds:
-  min_final_score: 0.59
+  min_final_score: 0.52
   min_evaluator_score: 0.50
   min_consensus_count: 3
   min_expectancy_pct: 0.30

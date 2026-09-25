@@ -263,6 +263,7 @@ def _yf_to_fundamentals(ticker: str, info: dict[str, Any]) -> Fundamentals:
         beta=info.get("beta"),
         week52_high=info.get("fiftyTwoWeekHigh"),
         week52_low=info.get("fiftyTwoWeekLow"),
+        current_price=info.get("currentPrice") or info.get("regularMarketPrice"),
     )
 
 

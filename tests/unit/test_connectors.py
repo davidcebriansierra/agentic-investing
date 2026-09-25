@@ -1,6 +1,8 @@
 """Tests de los conectores mock."""
 from __future__ import annotations
 
+import pytest
+
 from src.connectors.ibkr_read import MockMarketDataClient
 from src.connectors.ibkr_write import MockBrokerClient
 from src.connectors.news_apis import MockNewsClient
@@ -278,3 +280,67 @@ def test_apify_social_prefilter_drops_junk():
         assert _is_junk(t.upper(), t.lower()) is True, t
     for t in legit:
         assert _is_junk(t.upper(), t.lower()) is False, t
+
+
+def test_ibkr_bracket_links_children_to_parent():
+    """Regresion: TP y SL deben enlazar con el orderId del parent (no 0); si no, IBKR
+    transmitiria solo el SL y quedaria un stop huerfano sin compra ni take-profit."""
+    pytest.importorskip("ib_async")
+    from src.connectors.ibkr_write import IBKRBrokerClient
+    from src.schemas.enums import OrderAction
+    from src.schemas.order import Order, OrderLeg
+
+    client = object.__new__(IBKRBrokerClient)  # sin __init__: no conecta a IB Gateway
+    client.account = "DU123"
+    order = Order(
+        ticker="AAPL", action=OrderAction.BUY, quantity=10,
+        entry=OrderLeg(type="LMT", price=100.0),
+        take_profit=OrderLeg(type="LMT", price=110.0),
+        stop_loss=OrderLeg(type="STP", price=95.0),
+        account="DU123",
+    )
+    parent, tp, sl = client._build_bracket_orders(order, parent_id=42)
+    # El parent lleva el orderId reservado y los hijos lo referencian.
+    assert parent.orderId == 42
+    assert tp.parentId == 42 and sl.parentId == 42
+    # transmit: solo el SL transmite el bracket completo.
+    assert parent.transmit is False and tp.transmit is False and sl.transmit is True
+    # Acciones y precios correctos (compra -> cierres en venta).
+    assert parent.action == "BUY" and tp.action == "SELL" and sl.action == "SELL"
+    assert parent.lmtPrice == 100.0 and tp.lmtPrice == 110.0 and sl.auxPrice == 95.0
+
+
+def test_make_stock_contract_bme_us_and_multiclass():
+    """El constructor compartido resuelve BME en EUR/BM (con override), US en USD y las
+    clases de accion con espacio. Lo usan tanto lectura como escritura (mismo contrato)."""
+    from types import SimpleNamespace
+
+    from src.connectors.ibkr_contracts import make_stock_contract
+
+    def FakeStock(symbol, exchange, currency, primaryExchange=None):
+        return SimpleNamespace(
+            symbol=symbol, exchange=exchange, currency=currency,
+            primaryExchange=primaryExchange,
+        )
+
+    san = make_stock_contract("SAN.MC", FakeStock)
+    assert (san.symbol, san.currency, san.primaryExchange) == ("SAN", "EUR", "BM")
+    mts = make_stock_contract("MTS.MC", FakeStock)  # override ArcelorMittal
+    assert (mts.symbol, mts.currency, mts.primaryExchange) == ("MT", "EUR", "AEB")
+    aapl = make_stock_contract("AAPL", FakeStock)
+    assert (aapl.symbol, aapl.currency) == ("AAPL", "USD")
+    brk = make_stock_contract("BRK.B", FakeStock)
+    assert (brk.symbol, brk.currency) == ("BRK B", "USD")
+
+
+def test_geometry_error_long_and_short():
+    """Regresion: la validacion de geometria de precios editados replica la de Opportunity."""
+    from src.connectors.telegram_bot import _geometry_error
+
+    # LONG: SL < entrada < TP.
+    assert _geometry_error(100.0, 95.0, 110.0, is_long=True) is None
+    assert _geometry_error(100.0, 105.0, 110.0, is_long=True) is not None  # SL sobre entrada
+    assert _geometry_error(100.0, 95.0, 99.0, is_long=True) is not None    # TP bajo entrada
+    # SHORT: TP < entrada < SL.
+    assert _geometry_error(100.0, 105.0, 90.0, is_long=False) is None
+    assert _geometry_error(100.0, 95.0, 90.0, is_long=False) is not None   # SL bajo entrada

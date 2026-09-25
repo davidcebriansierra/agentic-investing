@@ -431,6 +431,77 @@ def test_ibkr_symbol_to_ticker_maps_scanner_symbols():
     assert fn(None, "AAPL", False) == "AAPL"
 
 
+def test_contract_to_ticker_inverts_make_contract():
+    """_contract_to_ticker deshace _make_contract: EUR -> .MC (con override), US -> punto."""
+    from types import SimpleNamespace
+
+    client = object.__new__(IBKRMarketDataClient)  # sin __init__: no requiere ib_async
+    to_ticker = client._contract_to_ticker
+    assert to_ticker(SimpleNamespace(symbol="SAN", currency="EUR")) == "SAN.MC"
+    assert to_ticker(SimpleNamespace(symbol="MT", currency="EUR")) == "MTS.MC"  # override inverso
+    assert to_ticker(SimpleNamespace(symbol="AAPL", currency="USD")) == "AAPL"
+    assert to_ticker(SimpleNamespace(symbol="BRK B", currency="USD")) == "BRK.B"
+
+
+def test_positions_from_items_maps_ib_portfolio():
+    """get_portfolio puebla posiciones: PortfolioItem de ib_async -> Position del dominio."""
+    from types import SimpleNamespace
+
+    client = object.__new__(IBKRMarketDataClient)
+
+    def item(symbol, currency, sec, qty, avg, mkt):
+        return SimpleNamespace(
+            contract=SimpleNamespace(symbol=symbol, currency=currency, secType=sec),
+            position=qty, averageCost=avg, marketPrice=mkt,
+        )
+
+    items = [
+        item("AAPL", "USD", "STK", 10, 100.0, 105.0),   # long US
+        item("BRK B", "USD", "STK", -5, 300.0, 310.0),  # short US multi-clase
+        item("SAN", "EUR", "STK", 20, 4.0, 4.2),         # long BME
+        item("MT", "EUR", "STK", 3, 25.0, 26.0),         # BME con override MT -> MTS
+        item("AAPL", "USD", "OPT", 1, 1.0, 2.0),         # no es accion -> descartada
+        item("ZERO", "USD", "STK", 0, 1.0, 2.0),         # cantidad 0 -> descartada
+        item("NODATA", "USD", "STK", 4, 10.0, 0.0),      # sin precio de mercado -> descartada
+    ]
+    stops = {"AAPL": 95.0, "SAN.MC": 3.8}  # solo algunas tienen stop abierto
+    by_ticker = {p.ticker: p for p in client._positions_from_items(items, stops)}
+    assert set(by_ticker) == {"AAPL", "BRK.B", "SAN.MC", "MTS.MC"}
+    assert by_ticker["AAPL"].direction == Direction.LONG
+    assert by_ticker["AAPL"].quantity == 10 and by_ticker["AAPL"].avg_price == 100.0
+    assert by_ticker["BRK.B"].direction == Direction.SHORT and by_ticker["BRK.B"].quantity == 5
+    assert by_ticker["MTS.MC"].market_price == 26.0
+    # El stop_loss se enlaza desde el mapa; sin orden stop queda None.
+    assert by_ticker["AAPL"].stop_loss == 95.0
+    assert by_ticker["SAN.MC"].stop_loss == 3.8
+    assert by_ticker["BRK.B"].stop_loss is None and by_ticker["MTS.MC"].stop_loss is None
+
+
+def test_stop_losses_from_trades_extracts_open_stops():
+    """_stop_losses_from_trades mapea ticker -> precio de las ordenes stop abiertas."""
+    from types import SimpleNamespace
+
+    client = object.__new__(IBKRMarketDataClient)
+
+    def trade(symbol, currency, order_type, *, aux=0.0, trail=0.0, status="Submitted"):
+        return SimpleNamespace(
+            contract=SimpleNamespace(symbol=symbol, currency=currency, secType="STK"),
+            order=SimpleNamespace(orderType=order_type, auxPrice=aux, trailStopPrice=trail),
+            orderStatus=SimpleNamespace(status=status),
+        )
+
+    trades = [
+        trade("AAPL", "USD", "STP", aux=95.0),                     # stop simple
+        trade("MT", "EUR", "STP LMT", aux=24.0),                   # stop-limit BME (override MT->MTS)
+        trade("TSLA", "USD", "TRAIL", trail=210.0),                # trailing stop
+        trade("NFLX", "USD", "LMT", aux=400.0),                    # no es stop -> ignorada
+        trade("AMZN", "USD", "STP", aux=180.0, status="Cancelled"),# inactiva -> ignorada
+        trade("META", "USD", "STP", aux=0.0),                      # precio 0 -> ignorada
+    ]
+    stops = client._stop_losses_from_trades(trades)
+    assert stops == {"AAPL": 95.0, "MTS.MC": 24.0, "TSLA": 210.0}
+
+
 def test_ib_wrapper_noise_filter_collapses_162_ip_spam():
     """El filtro colapsa el spam del Error 162 'different IP address' sin tocar el resto."""
     import logging
