@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import datetime, timezone
 from typing import Protocol
 
 from src.connectors.ibkr_contracts import BME_SYMBOL_TO_BASE, make_stock_contract
 from src.governance.pre_trade_validator import MarketContext
 from src.schemas.enums import Direction, Exchange
 from src.schemas.market import OHLCVBar, PremarketSnapshot, Quote
+from src.schemas.order import Fill
 from src.schemas.portfolio import Portfolio, Position
 
 logger = logging.getLogger("agentic.connectors.ibkr")
@@ -79,6 +81,15 @@ class MarketDataClient(Protocol):
 
     async def is_tradable_today(self, ticker: str) -> bool: ...
 
+    async def get_fills(self) -> list[Fill]:
+        """Ejecuciones (fills) reportadas por el broker para la cuenta.
+
+        Se usa para reconciliar el P&L realizado: los fills incluyen los cierres por
+        stop-loss/take-profit ejecutados por IBKR, que el sistema no observa
+        directamente (la bracket order cierra "en el broker").
+        """
+        ...
+
 
 class MockMarketDataClient:
     """Implementacion en memoria. Los datos se inyectan en el constructor."""
@@ -93,6 +104,7 @@ class MockMarketDataClient:
         premarket: dict[str, PremarketSnapshot] | None = None,
         open_snapshots: dict[str, PremarketSnapshot] | None = None,
         top_movers: dict[Exchange, list[str]] | None = None,
+        fills: list[Fill] | None = None,
     ) -> None:
         self._portfolio = portfolio or Portfolio(total_equity=100_000, cash=100_000)
         self._quotes = quotes if quotes is not None else {}
@@ -108,6 +120,7 @@ class MockMarketDataClient:
         #: el de premarket como respaldo para simplificar los tests.
         self._open_snapshots = open_snapshots or {}
         self._top_movers = top_movers or {}
+        self._fills = fills if fills is not None else []
         self.connected = False
 
     async def connect(self) -> None:
@@ -149,6 +162,9 @@ class MockMarketDataClient:
         if self._tradable is None:
             return True
         return ticker in self._tradable
+
+    async def get_fills(self) -> list[Fill]:
+        return list(self._fills)
 
     async def build_market_context(self, ticker: str, exchange: Exchange) -> MarketContext:
         """Helper: compone el MarketContext que necesita el Pre-Trade Validator."""
@@ -246,6 +262,40 @@ class IBKRMarketDataClient:
         stops = self._stop_losses_from_trades(self.ib.openTrades())
         positions = self._positions_from_items(self.ib.portfolio(), stops)
         return Portfolio(total_equity=equity, cash=cash, positions=positions)
+
+    async def get_fills(self) -> list[Fill]:  # pragma: no cover - requiere IBKR
+        """Ejecuciones de la cuenta (reconciliacion de P&L realizado).
+
+        Lee `execDetails()` de ib_async: incluye todos los fills del dia de trading,
+        tambien los cierres disparados por las patas SL/TP de las bracket orders.
+        Ante fallo devuelve lista vacia (la reconciliacion es best-effort).
+        """
+        try:
+            details = self.ib.execDetails()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("IBKR: execDetails() fallo (%s); sin fills.", exc)
+            return []
+        fills: list[Fill] = []
+        for detail in details or []:
+            try:
+                contract = detail.contract
+                ticker = self._contract_to_ticker(contract)
+                execution = detail.execution
+                report = getattr(detail, "commissionReport", None)
+                ts = getattr(execution, "time", None)
+                fills.append(
+                    Fill(
+                        ticker=str(ticker),
+                        side=str(getattr(execution, "side", "")),
+                        quantity=float(getattr(execution, "shares", 0) or 0),
+                        price=float(getattr(execution, "price", 0) or 0),
+                        commission=float(getattr(report, "commission", 0.0) or 0.0),
+                        timestamp_utc=ts if ts is not None else datetime.now(timezone.utc),
+                    )
+                )
+            except Exception:  # noqa: BLE001 - un fill malformado no aborta el resto
+                continue
+        return fills
 
     def _contract_to_ticker(self, contract) -> str:
         """Reconstruye el ticker de la watchlist desde un contrato IBKR (inverso de _make_contract).

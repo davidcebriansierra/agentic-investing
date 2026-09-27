@@ -43,6 +43,34 @@ searchers:
 monitor:
   interval_minutes: 15   # revision periodica de riesgo: P&L no realizado, stop-loss por posicion y kill switch (drawdown intradia)
 
+# Asistente de cartera (advisor): resumen periodico por Telegram + chat libre con el
+# usuario (preguntas sobre estado/metricas) + propuestas de cambio de parametros que
+# el usuario confirma o descarta con botones (nunca se aplican solas). Respeta la
+# ventana operativa (el job corre dentro del mismo bucle gateado que el resto).
+advisor:
+  enabled: true
+  report_interval_minutes: 60   # frecuencia del resumen de cartera
+  chat_enabled: true            # texto libre -> respuesta LLM (si false, solo comandos)
+  param_change_via_hitl: true   # las propuestas requieren pulsar "Aplicar"
+
+# Modulo de simulacion de estrategias: reutiliza el motor de backtest para barrer
+# parametros sobre datos OHLCV reales del broker. Se lanza bajo demanda con el
+# comando /simulacion del bot; el ultimo resultado se expone al advisor.
+simulation:
+  enabled: true
+  initial_equity: 100000
+  holding_bars: 1               # ventana de holding (barras diarias tras la señal)
+  commission_per_trade: 1.0
+  max_tickers: 10               # tope de tickers por barrido (pacing IBKR)
+  ohlcv_interval: "1 day"
+  ohlcv_bars: 120               # ~6 meses de barras diarias
+  tickers: []                   # vacio = primeros max_tickers de la watchlist
+  param_grid:                   # barrido de parametros de SmaCrossStrategy
+    short: [5, 10]
+    long: [20, 50]
+    sl_pct: [0.01, 0.02]
+    rr: [2.0]
+
 # Universo de tickers vigilado por los buscadores (IBEX35 sufijo .MC, S&P500 sin sufijo).
 watchlist:
   # --- IBEX 35 ---

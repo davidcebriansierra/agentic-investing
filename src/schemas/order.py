@@ -51,3 +51,21 @@ class ExecutionResult(BaseModel):
     commission: float | None = None
     timestamp_utc: datetime = Field(default_factory=_utcnow)
     raw_ibkr_response: str | None = None
+
+
+class Fill(BaseModel):
+    """Ejecucion (fill) reportada por el broker.
+
+    A diferencia de `ExecutionResult` (resultado de UNA orden enviada por el sistema),
+    un `Fill` es el registro de ejecucion que IBKR reporta por cuenta: sirve para
+    reconciliar el P&L realizado aunque el fill corresponda a una orden que el sistema
+    no conoce (p. ej. un stop-loss disparado en otra sesion).
+    """
+
+    ticker: str
+    side: str                    # "BOT" (compra) | "SLD" (venta)
+    quantity: float = Field(gt=0)
+    price: float = Field(gt=0)
+    commission: float = 0.0
+    timestamp_utc: datetime = Field(default_factory=_utcnow)
+    order_id_internal: str | None = None  # si el fill casa con una orden del sistema

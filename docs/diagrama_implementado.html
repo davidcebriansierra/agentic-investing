@@ -180,7 +180,7 @@
         <h2><span class="num">6</span> Aprobación humana (HITL)</h2>
         <div class="cards">
           <div class="card"><div class="st ok"></div><div class="t">Lógica HITL + TTL</div><div class="d">Aprobar / Rechazar / Pausar 1h; timeout → no operar. Nodo LangGraph cableado con cliente real.</div><div class="f">schemas/hitl.py · graph/workflow.py</div></div>
-          <div class="card"><div class="st ok"></div><div class="t">Bot de Telegram</div><div class="d">Botones inline, multi-usuario, TTL async. Mock por defecto; requiere token real para runtime.</div><div class="f">connectors/telegram_bot.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Bot de Telegram</div><div class="d">Botones inline, multi-usuario, TTL async. Ademas: comandos del asistente (/status /resumen /metricas /posiciones /simulacion), chat libre y botones Aplicar/Descartar de propuestas de parametros.</div><div class="f">connectors/telegram_bot.py</div></div>
           <div class="card"><div class="st ok"></div><div class="t">Flujo TTL validado</div><div class="d">TIMEOUT → approved=False → no-operar. PAUSE_1H activa kill switch.</div><div class="f">tests/unit/test_hitl_node.py · test_connectors.py</div></div>
           <div class="card"><div class="st ok"></div><div class="t">Auditoría de decisiones</div><div class="d">Toda decisión queda registrada.</div><div class="f">governance/audit_logger.py</div></div>
         </div>
@@ -213,6 +213,34 @@
           <div class="card"><div class="st ok"></div><div class="t">Seguimiento de posiciones</div><div class="d">P&amp;L, trailing, relleno parcial, disparadores.</div><div class="f">agents/monitor.py</div></div>
           <div class="card"><div class="st ok"></div><div class="t">Métricas Prometheus (F6)</div><div class="d">11 métricas: pipeline + monitor (pnl_unrealized_pct, open_positions, consecutive_losses, missing_stop_loss_total, monitoring_events_total).</div><div class="f">observability/metrics.py · agents/monitor.py</div></div>
           <div class="card"><div class="st ok"></div><div class="t">EventPublisher</div><div class="d">Publica oportunidades, decisiones y ejecuciones en Redis Streams tras cada fase.</div><div class="f">messaging/streams.py · graph/workflow.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">P&L realizado (fills IBKR)</div><div class="d">Reconciliacion FIFO de las ejecuciones de la cuenta (execDetails, incluye cierres SL/TP). Neto de comisiones, alimenta el informe del advisor.</div><div class="f">portfolio/realized.py · ibkr_read.get_fills</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADVISOR + SIMULACION -->
+    <div class="row r3">
+      <div class="panel z-hitl">
+        <h2><span class="num">9</span> Asistente de cartera (Advisor LLM)</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Informe horario</div><div class="d">Resumen de cartera cada 60 min por Telegram: equity, P&L realizado/no realizado, posiciones, actividad y riesgo. En espanol.</div><div class="f">agents/advisor.py · prompts/advisor/portfolio.md</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Chat libre</div><div class="d">Preguntas en lenguaje natural con contexto de cartera e historial por usuario.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">Propuestas de parametros</div><div class="d">LLM propone cambios whitelist; el usuario aplica con boton -> escritura directa en YAML.</div><div class="f">governance/param_change.py</div></div>
+        </div>
+      </div>
+      <div class="panel z-data">
+        <h2><span class="num">10</span> Modulo de simulacion</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">Barrido de parametros</div><div class="d">Reutiliza Backtester + BacktestResult: param_grid sobre SmaCrossStrategy con barras OHLCV reales, ranking por Sharpe.</div><div class="f">simulation/service.py</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">/simulacion en Telegram</div><div class="d">Barrido bajo demanda; ultimo resultado inyectado al contexto del advisor.</div></div>
+          <div class="card"><div class="st part"></div><div class="t">Pendiente TFM</div><div class="d">Rebalanceo, DCA dinamico y stress test de cartera.</div></div>
+        </div>
+      </div>
+      <div class="panel z-agg">
+        <h2><span class="num">T</span> Tests nuevos</h2>
+        <div class="cards">
+          <div class="card"><div class="st ok"></div><div class="t">test_advisor.py</div><div class="d">Contexto, resumen con/sin LLM, filtrado de propuestas, escritura YAML de parametros.</div></div>
+          <div class="card"><div class="st ok"></div><div class="t">test_realized_and_simulation.py</div><div class="d">FIFO de P&L realizado, agregacion de barras, barrido de simulacion.</div></div>
         </div>
       </div>
     </div>
@@ -290,6 +318,9 @@
         <li>Gobierno: <span class="k">Pre-Trade Validator</span>, <span class="k">Kill Switch</span>, <span class="k">Audit</span></li>
         <li>Memoria episódica y track record</li>
         <li>Backtesting con KPIs (Sharpe, expectancy, drawdown…)</li>
+        <li><span class="k">Advisor LLM</span>: informe horario + chat + propuestas HITL -> YAML</li>
+        <li><span class="k">P&L realizado</span>: reconciliacion FIFO de fills IBKR</li>
+        <li><span class="k">Simulacion</span>: barrido de parametros sobre el motor de backtest</li>
       </ul>
     </div>
 
@@ -301,6 +332,10 @@
         <li><span class="k">Aggregator stateful</span>: memoria rodante 1h + bonus multi-fuente</li>
         <li><span class="k">Evaluadores LLM</span>: prompt multi_source_context (DeepSeek)</li>
         <li><span class="k">Dashboard</span> agent_monitor: hora local en timeline y tablas</li>
+        <li><span class="k">Advisor</span>: resumen horario LLM + chat libre + cambios de parametros con botones (escriles YAML)</li>
+        <li><span class="k">get_fills()</span>: P&L realizado reconciliado (FIFO) desde fills IBKR</li>
+        <li><span class="k">src/simulation/</span>: barrido param_grid + /simulacion + contexto al advisor</li>
+        <li><span class="k">Fundamental</span>: current_price de yfinance ancla el entry_price</li>
       </ul>
     </div>
 
@@ -310,6 +345,7 @@
         <li><span class="k">Qdrant</span> con embeddings reales (ahora in-memory)</li>
         <li><span class="k">Gobierno IA</span> (NeuralTrust + watsonx.governance)</li>
         <li><span class="k">Modo LIVE</span>: cuenta real + límites de riesgo auditados</li>
+        <li><span class="k">Simulacion de cartera</span>: rebalanceo, DCA dinamico, stress test</li>
       </ul>
       <ul style="margin-top:6px"><li>Guía: <code>docs/cableado_conectores_reales.md</code></li></ul>
     </div>
@@ -332,7 +368,7 @@
 </div>
 
 <div class="foot">
-  Documento autocontenido (sin dependencias externas). Estado validado en runtime PAPER (IB Gateway 4002 · DeepSeek v4-flash) — agosto 2026.
+  Documento autocontenido (sin dependencias externas). Estado validado en runtime PAPER (IB Gateway 4002 · DeepSeek v4-flash) — septiembre 2026.
   Complementa a <code>docs/arquitectura.html</code> (arquitectura lógica, infraestructura, animación y estructura).
 </div>
 </body>

@@ -154,6 +154,40 @@ class TelegramHITLClient:
         self._pending_requests: dict[str, ApprovalRequest] = {}
         # Estado de edicion activa: chat_id -> _EditState (un chat edita a la vez)
         self._edit_states: dict[int, _EditState] = {}
+        # --- Canal del asistente de cartera (advisor) ---
+        # Inyectado por la Application via `attach_assistant`; todo opcional para no
+        # romper el flujo HITL ni los mocks/tests existentes.
+        #: Genera el informe de cartera: async () -> (texto, [ParamProposal]).
+        self.report_fn: Callable[[], Any] | None = None
+        #: Responde preguntas libres: async (user_id, texto) -> str.
+        self.answer_fn: Callable[[int, str], Any] | None = None
+        #: Aplica una propuesta de parametro: (file, path, value) -> old_value.
+        self.param_apply_fn: Callable[[str, str, Any], Any] | None = None
+        #: Propuestas de parametros pendientes: proposal_id -> objeto propuesta.
+        self._param_pending: dict[str, Any] = {}
+        #: Comandos personalizados del asistente: nombre -> async () -> str
+        #: (p. ej. "simulacion" -> barrido de simulacion bajo demanda).
+        self.command_fns: dict[str, Callable[[], Any]] = {}
+
+    def attach_assistant(
+        self,
+        report_fn: Callable[[], Any] | None = None,
+        answer_fn: Callable[[int, str], Any] | None = None,
+        param_apply_fn: Callable[[str, str, Any], Any] | None = None,
+        command_fns: dict[str, Callable[[], Any]] | None = None,
+    ) -> None:
+        """Conecta las funciones del asistente de cartera (advisor) al bot.
+
+        `report_fn` se invoca en /status, /resumen, /metricas y en el envio periodico.
+        `answer_fn` se invoca con mensajes de texto libres (cuando no hay edicion HITL
+        activa). `param_apply_fn` escribe el YAML tras pulsar "Aplicar".
+        `command_fns` registra comandos extra (debe llamarse antes de start()).
+        """
+        self.report_fn = report_fn
+        self.answer_fn = answer_fn
+        self.param_apply_fn = param_apply_fn
+        if command_fns:
+            self.command_fns.update(command_fns)
 
     async def start(self) -> None:  # pragma: no cover - requiere Telegram
         """Arranca la Application de Telegram y el polling de callbacks."""
@@ -163,6 +197,13 @@ class TelegramHITLClient:
         self._app = TgApp.builder().token(self.bot_token).build()
         self._app.add_handler(CallbackQueryHandler(self._on_callback))
         self._app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._on_message))
+        # Comandos del asistente: informe bajo demanda.
+        from telegram.ext import CommandHandler
+        for cmd in ("status", "resumen", "metricas", "posiciones"):
+            self._app.add_handler(CommandHandler(cmd, self._on_command_report))
+        # Comandos personalizados del asistente (p. ej. /simulacion).
+        for name in self.command_fns:
+            self._app.add_handler(CommandHandler(name, self._on_custom_command))
         await self._app.initialize()
         await self._app.start()
         await self._app.updater.start_polling()
@@ -240,7 +281,18 @@ class TelegramHITLClient:
             return
         state = self._edit_states.get(user_id)
         if state is None:
-            return  # no hay edicion activa para este usuario
+            # Sin edicion activa: el texto libre va al asistente (chat).
+            if self.answer_fn is not None:
+                text_q = (update.message.text or "").strip()
+                if not text_q:
+                    return
+                await update.message.reply_text("🤔 Consultando...")
+                reply = await self.answer_fn(user_id, text_q)
+                try:
+                    await update.message.reply_text(reply, parse_mode="Markdown")
+                except Exception:  # noqa: BLE001 - markup invalido del LLM -> texto plano
+                    await update.message.reply_text(reply)
+            return
 
         text = (update.message.text or "").strip().replace(",", ".")
         field_name = _EDIT_FIELDS[state.step]
@@ -339,6 +391,11 @@ class TelegramHITLClient:
             )
             return
 
+        # -- Botones del asistente: aplicar/descartar propuesta de parametro --
+        if action in ("param_apply", "param_discard"):
+            await self._on_param_action(action, request_id, query, who=user.username or str(user_id))
+            return
+
         if action not in _ACTION_TO_DECISION or _ACTION_TO_DECISION[action] is None:
             return
         decision = _ACTION_TO_DECISION[action]
@@ -427,4 +484,134 @@ class TelegramHITLClient:
             decision=decision,
             responder=responder,
             edited_prices=edited_prices,
+        )
+
+    # ------------------------------------------------------------------
+    # Canal del asistente de cartera (advisor)
+    # ------------------------------------------------------------------
+
+    async def send_text(self, text: str, parse_mode: str = "Markdown") -> int:  # pragma: no cover - requiere Telegram
+        """Envia un mensaje a todos los usuarios autorizados. Devuelve cuantos enviados."""
+        if self._app is None:
+            raise RuntimeError("TelegramHITLClient.start() no ha sido invocado.")
+        sent = 0
+        for uid in self.authorized_users:
+            try:
+                await self._app.bot.send_message(uid, text, parse_mode=parse_mode)
+                sent += 1
+            except Exception as exc:  # noqa: BLE001 - no abortar por un chat fallido
+                logger.warning("No se pudo enviar texto a %s: %s", uid, exc)
+        return sent
+
+    @staticmethod
+    def _keyboard_param(proposal_id: str):
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
+        return InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("✅ Aplicar", callback_data=f"param_apply:{proposal_id}"),
+                    InlineKeyboardButton("❌ Descartar", callback_data=f"param_discard:{proposal_id}"),
+                ]
+            ]
+        )
+
+    async def send_report(self) -> None:  # pragma: no cover - requiere Telegram
+        """Genera el informe via `report_fn` y lo difunde; envia un mensaje con botones
+        por cada propuesta de parametro pendiente."""
+        if self.report_fn is None:
+            return
+        text, proposals = await self.report_fn()
+        await self.send_text(text)
+        for prop in proposals or []:
+            pid = prop.proposal_id
+            self._param_pending[pid] = prop
+            desc = (
+                f"⚙️ *Propuesta de cambio de parametro*\n"
+                f"`{prop.file}` → `{prop.path}` = `{prop.value}`\n"
+                f"{prop.rationale}"
+            )
+            for uid in self.authorized_users:
+                try:
+                    await self._app.bot.send_message(
+                        uid, desc, parse_mode="Markdown",
+                        reply_markup=self._keyboard_param(pid),
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("No se pudo enviar propuesta %s a %s: %s", pid, uid, exc)
+
+    async def _on_command_report(  # pragma: no cover - requiere Telegram
+        self, update: "Update", context: "ContextTypes.DEFAULT_TYPE"
+    ) -> None:
+        """Comandos del asistente (/status /resumen /metricas /posiciones): informe bajo demanda."""
+        user = update.effective_user
+        if (user.id if user else None) not in self.authorized_users:
+            return
+        if self.report_fn is None:
+            await update.message.reply_text("Asistente no configurado.")
+            return
+        await update.message.reply_text("📊 Generando informe...")
+        text, proposals = await self.report_fn()
+        await update.message.reply_text(text, parse_mode="Markdown")
+        for prop in proposals or []:
+            self._param_pending[prop.proposal_id] = prop
+            await update.message.reply_text(
+                f"⚙️ *Propuesta:* `{prop.file}` → `{prop.path}` = `{prop.value}`\n{prop.rationale}",
+                parse_mode="Markdown",
+                reply_markup=self._keyboard_param(prop.proposal_id),
+            )
+
+    async def _on_custom_command(  # pragma: no cover - requiere Telegram
+        self, update: "Update", context: "ContextTypes.DEFAULT_TYPE"
+    ) -> None:
+        """Resuelve un comando personalizado llamando a su funcion registrada."""
+        user = update.effective_user
+        if (user.id if user else None) not in self.authorized_users:
+            return
+        command = (update.message.text or "").lstrip("/").split("@")[0].split(" ")[0]
+        fn = self.command_fns.get(command)
+        if fn is None:
+            return
+        await update.message.reply_text("⏳ Procesando...")
+        try:
+            text = await fn()
+        except Exception as exc:  # noqa: BLE001
+            text = f"⚠️ Error: {exc}"
+        try:
+            await update.message.reply_text(text, parse_mode="Markdown")
+        except Exception:  # noqa: BLE001 - markup invalido -> texto plano
+            await update.message.reply_text(text)
+
+    async def _on_param_action(  # pragma: no cover - requiere Telegram
+        self, action: str, proposal_id: str, query, who: str
+    ) -> None:
+        """Resuelve el boton Aplicar/Descartar de una propuesta de parametro."""
+        prop = self._param_pending.pop(proposal_id, None)
+        if prop is None:
+            await query.edit_message_text("Propuesta expirada o ya resuelta.")
+            return
+        if action == "param_discard":
+            await query.edit_message_text(
+                f"❌ Descartada por {who}: `{prop.path}`", parse_mode="Markdown"
+            )
+            logger.info("Propuesta %s descartada por %s.", proposal_id, who)
+            return
+        if self.param_apply_fn is None:
+            await query.edit_message_text("Aplicacion de parametros no configurada.")
+            return
+        try:
+            old = self.param_apply_fn(prop.file, prop.path, prop.value)
+        except Exception as exc:  # noqa: BLE001 - informar del error sin abortar
+            await query.edit_message_text(
+                f"⚠️ Error aplicando `{prop.path}`: {exc}", parse_mode="Markdown"
+            )
+            logger.warning("Error aplicando propuesta %s: %s", proposal_id, exc)
+            return
+        await query.edit_message_text(
+            f"✅ Aplicado por {who}: `{prop.file}` `{prop.path}` = `{prop.value}`"
+            f" (antes: `{old}`)",
+            parse_mode="Markdown",
+        )
+        logger.info(
+            "Propuesta %s aplicada por %s (%s -> %s).", proposal_id, who, old, prop.value
         )

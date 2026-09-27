@@ -14,8 +14,14 @@ import signal
 import os
 from datetime import datetime, timezone
 
+from src.agents.advisor import (
+    ALLOWED_PARAM_PREFIXES,
+    PortfolioAdvisor,
+    daily_stats_from_repository,
+)
 from src.agents.executor import Executor
 from src.governance.audit_logger import build_audit_logger
+from src.governance.param_change import apply_param_change
 from src.agents.monitor import Monitor
 from src.agents.searchers import (
     CrossMarketSearcher,
@@ -44,9 +50,11 @@ from src.scheduler.scheduler import SimpleScheduler, within_trading_window
 from src.schemas.decision import Decision
 from src.schemas.enums import Exchange
 from src.schemas.hitl import ApprovalDecision, EditedPrices
+from src.portfolio.realized import realized_pnl
 from src.schemas.opportunity import Opportunity
 from src.schemas.portfolio import Portfolio
-from src.utils.config import get_config
+from src.simulation import SimulationService
+from src.utils.config import CONFIG_DIR, get_config, get_decisor_config
 from src.utils.env import load_env
 
 logging.basicConfig(
@@ -208,6 +216,53 @@ class Application:
         self.monitor = Monitor(kill_switch=self.kill_switch, audit=self.audit, metrics=self.metrics)
         # Canal de aprobacion humana (HITL): Telegram real o mock (TIMEOUT=no operar).
         self.hitl = build_hitl_client(self.config)
+        # Asistente de cartera (advisor): resumen periodico + chat + propuestas de
+        # parametros confirmadas por el usuario. Solo si esta habilitado en config y
+        # el bot real esta disponible (los mocks no exponen attach_assistant).
+        advisor_cfg = self.config.get("advisor", {})
+        self.advisor: PortfolioAdvisor | None = None
+        if advisor_cfg.get("enabled", False):
+            from src.llm.prompts import PromptLibrary
+
+            self.advisor = PortfolioAdvisor(
+                llm=self.searcher_llm,
+                prompts=PromptLibrary(),
+                temperature=float(self.config.get("llm", {}).get("temperature", 0.3)),
+            )
+            attach = getattr(self.hitl, "attach_assistant", None)
+            if attach is not None:
+                attach(
+                    report_fn=self._advisor_report,
+                    answer_fn=self._advisor_answer,
+                    param_apply_fn=self._apply_param,
+                    command_fns={"simulacion": self._simulation_command},
+                )
+                logger.info("Asistente de cartera (advisor) cableado al bot de Telegram.")
+            else:
+                logger.info("Advisor habilitado pero el HITL actual no soporta el canal.")
+        # Modulo de simulacion de estrategias: reutiliza el motor de backtest para
+        # barrer parametros; el ultimo resultado se expone al advisor en su contexto.
+        sim_cfg = self.config.get("simulation", {})
+        self.simulation: SimulationService | None = None
+        if sim_cfg.get("enabled", False):
+            from src.backtest.engine import BacktestConfig
+
+            self.simulation = SimulationService(
+                backtest_config=BacktestConfig(
+                    initial_equity=float(
+                        sim_cfg.get(
+                            "initial_equity",
+                            self.config.get("system", {}).get("initial_equity", 100_000.0),
+                        )
+                    ),
+                    holding_bars=int(sim_cfg.get("holding_bars", 1)),
+                    commission_per_trade=float(sim_cfg.get("commission_per_trade", 1.0)),
+                    use_pipeline=False,  # simulacion: barrido puro de estrategia
+                )
+            )
+            if self.advisor is not None:
+                self.advisor.extra_context_fn = self.simulation.latest_summary
+            logger.info("Modulo de simulacion habilitado.")
         self._stop = asyncio.Event()
         # Estado del monitor: ancla de equity al inicio de sesion (para el drawdown
         # intradia) y contador de perdidas consecutivas (a actualizar cuando se cablee
@@ -305,6 +360,156 @@ class Application:
             if not state.risk_pass:
                 self.metrics.risk_rejections_total.inc()
 
+    async def _advisor_report(self):
+        """Genera el informe del asistente: portfolio real + estadisticas del dia.
+
+        Devuelve (texto, propuestas) tal como espera el bot de Telegram.
+        """
+        try:
+            portfolio = await self.market_data.get_portfolio()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("advisor: cartera no disponible (%s); usando fallback.", exc)
+            portfolio = self._portfolio()
+        drawdown = 0.0
+        if self._equity_day_open:
+            drawdown = Monitor.intraday_drawdown_pct(self._equity_day_open, portfolio.total_equity)
+        stats = daily_stats_from_repository(
+            self.repository,
+            consecutive_losses=self._consecutive_losses,
+            intraday_drawdown_pct=drawdown,
+        )
+        realized = await self._realized_pnl_today()
+        if realized is not None:
+            stats.realized_pnl = realized.realized_pnl
+            stats.realized_trades = realized.closed_trades
+        return await self.advisor.summarize(
+            portfolio, stats, equity_day_open=self._equity_day_open
+        )
+
+    async def _advisor_answer(self, user_id: int, question: str) -> str:
+        """Proxy del chat libre de Telegram hacia el advisor con contexto actual."""
+        try:
+            portfolio = await self.market_data.get_portfolio()
+        except Exception:  # noqa: BLE001
+            portfolio = self._portfolio()
+        drawdown = 0.0
+        if self._equity_day_open:
+            drawdown = Monitor.intraday_drawdown_pct(self._equity_day_open, portfolio.total_equity)
+        stats = daily_stats_from_repository(
+            self.repository,
+            consecutive_losses=self._consecutive_losses,
+            intraday_drawdown_pct=drawdown,
+        )
+        realized = await self._realized_pnl_today()
+        if realized is not None:
+            stats.realized_pnl = realized.realized_pnl
+            stats.realized_trades = realized.closed_trades
+        return await self.advisor.answer(
+            user_id, question, portfolio, stats, equity_day_open=self._equity_day_open
+        )
+
+    def _apply_param(self, file: str, path: str, value) -> object:
+        """Aplica una propuesta de parametro confirmada por el usuario.
+
+        Tras escribir el YAML invalida las caches de configuracion y recarga
+        `self.config`; los componentes que lean config en caliente (scheduler,
+        ventana operativa) recogen el cambio de inmediato. Los pesos del decisor
+        viven dentro del pipeline construido al arrancar, asi que cambios en
+        `decisor_weights.yaml` quedan persistidos pero requieren reinicio para
+        aplicarse al consenso en caliente (se logea para que el usuario lo sepa).
+        """
+        old = apply_param_change(CONFIG_DIR, file, path, value, ALLOWED_PARAM_PREFIXES)
+        get_config.cache_clear()
+        get_decisor_config.cache_clear()
+        self.config = get_config()
+        if file == "decisor_weights.yaml":
+            logger.warning(
+                "Cambio en %s persistido (%s=%s). El pipeline usa los pesos cargados "
+                "al arrancar: reinicia para aplicarlos al consenso.", file, path, value,
+            )
+        return old
+
+    async def _realized_pnl_today(self):
+        """Reconcilia los fills del broker del dia y devuelve el P&L realizado.
+
+        Devuelve `RealizedSummary` o None si el conector no soporta fills (mock
+        sin datos) o la lectura falla (best-effort, nunca aborta el informe).
+        """
+        get_fills = getattr(self.market_data, "get_fills", None)
+        if get_fills is None:
+            return None
+        try:
+            fills = await get_fills()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("advisor: no se pudieron leer fills (%s).", exc)
+            return None
+        if not fills:
+            return None
+        today = datetime.now(timezone.utc).date()
+        return realized_pnl(fills, on_date=today)
+
+    async def _simulation_command(self) -> str:
+        """Comando /simulacion: lanza un barrido de simulacion bajo demanda.
+
+        Pide barras OHLCV del market data para los tickers configurados, las agrega
+        a barras diarias y ejecuta el barrido. Es best-effort por ticker (un fallo
+        de lectura no aborta el escaneo).
+        """
+        if self.simulation is None:
+            return "Modulo de simulacion no habilitado."
+        from src.simulation import aggregate_daily_bars
+
+        sim_cfg = self.config.get("simulation", {})
+        tickers = list(sim_cfg.get("tickers") or self.config.get("watchlist", []))[: int(
+            sim_cfg.get("max_tickers", 10)
+        )]
+        grid = sim_cfg.get("param_grid") or {
+            "short": [5], "long": [20], "sl_pct": [0.01], "rr": [2.0],
+        }
+        interval = str(sim_cfg.get("ohlcv_interval", "1 day"))
+        bars_count = int(sim_cfg.get("ohlcv_bars", 120))
+        bars_by_ticker: dict[str, list] = {}
+        for ticker in tickers:
+            try:
+                ohlcv = await self.market_data.get_ohlcv(
+                    ticker, bars=bars_count, interval=interval
+                )
+                daily = aggregate_daily_bars(ohlcv)
+                if daily:
+                    bars_by_ticker[ticker] = daily
+            except Exception as exc:  # noqa: BLE001 - un ticker sin datos no aborta
+                logger.debug("simulacion: sin barras para %s (%s).", ticker, exc)
+        if not bars_by_ticker:
+            return "No se pudieron obtener barras para ningun ticker configurado."
+        # Cada ticker simula con su exchange (BME para *.MC, NYSE para el resto).
+        groups: dict[Exchange, dict[str, list]] = {}
+        for ticker, daily in bars_by_ticker.items():
+            ex = Exchange.BME if ticker.endswith(".MC") else Exchange.NYSE
+            groups.setdefault(ex, {})[ticker] = daily
+        scenarios = []
+        for ex, bars_map in groups.items():
+            scenarios.extend(
+                self.simulation.run_sweep(list(bars_map), bars_map, ex, grid)
+            )
+        scenarios.sort(key=lambda s: s.sharpe_annualized, reverse=True)
+        self.simulation._latest = scenarios
+        if not scenarios:
+            return "El barrido no produjo resultados."
+        summary = self.simulation.latest_summary(top=5) or "Sin resultados."
+        return f"🧪 *Simulacion completada* ({len(scenarios)} escenarios, {len(bars_by_ticker)} tickers)\n{summary}"
+
+    async def _advisor_tick(self) -> None:
+        """Job periodico: envia el informe del asistente via Telegram."""
+        if self.advisor is None:
+            return
+        send = getattr(self.hitl, "send_report", None)
+        if send is None:
+            return
+        try:
+            await send()
+        except Exception as exc:  # noqa: BLE001 - un informe fallido no aborta el loop
+            logger.warning("advisor: fallo al enviar informe (%s).", exc)
+
     async def _monitor_tick(self) -> None:
         """Revision periodica de riesgo: P&L no realizado, stop-loss y kill switch.
 
@@ -356,6 +561,13 @@ class Application:
         monitor_interval = float(self.config.get("monitor", {}).get("interval_minutes", 15))
         self.scheduler.add_job("monitor", monitor_interval, self._monitor_tick)
         logger.info("Registrado monitor cada %s min", monitor_interval)
+
+        if self.advisor is not None:
+            advisor_interval = float(
+                self.config.get("advisor", {}).get("report_interval_minutes", 60)
+            )
+            self.scheduler.add_job("advisor_report", advisor_interval, self._advisor_tick)
+            logger.info("Registrado informe del asesor cada %s min", advisor_interval)
 
     async def _job_loop(self, job) -> None:
         """Bucle periodico para un job.

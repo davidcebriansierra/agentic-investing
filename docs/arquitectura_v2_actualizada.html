@@ -195,6 +195,8 @@ aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
     <div class="pipe-step"><div class="ic">📤</div><div class="lb">Executor</div><div class="sub">bracket order IBKR</div></div>
     <div class="pipe-arrow">→</div>
     <div class="pipe-step"><div class="ic">📊</div><div class="lb">Monitor</div><div class="sub">P&amp;L + kill switch</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><div class="ic">🤖</div><div class="lb">Advisor</div><div class="sub">informe LLM + chat</div></div>
   </div>
 
   <!-- ROW 1: BUSCADORES + AGGREGATOR + RISK FILTER -->
@@ -515,6 +517,69 @@ aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
 
   </div><!-- /g23 row3 -->
 
+  <!-- ROW 3.5: ADVISOR + SIMULACION + P&L REALIZADO -->
+  <div class="g3">
+
+    <!-- 6.5 ASISTENTE DE CARTERA -->
+    <div class="panel z-hitl">
+      <h2><span class="num">6.5</span>Asistente de Cartera (Advisor)
+        &nbsp;<small style="font-weight:400;color:var(--muted)">LLM · objetivo 6 del TFM</small></h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📊 Informe horario por Telegram</div>
+          <div class="d">Job <code>advisor_report</code> cada 60 min en la ventana operativa. Equity, P&amp;L realizado y no realizado, posiciones, actividad del dia y riesgo. <b>En espanol.</b></div>
+          <div class="f">agents/advisor.py · prompts/advisor/portfolio.md</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">💬 Chat libre + comandos</div>
+          <div class="d">Texto libre -> respuesta LLM con contexto de cartera e historial (10 turnos). Comandos <code>/status /resumen /metricas /posiciones /simulacion</code>.</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">⚙️ Propuestas de parametros (HITL)</div>
+          <div class="d">El LLM propone cambios (<code>{file, path, value}</code> vs whitelist); el usuario <b>Aplica/Descarta</b> con botones -> escritura directa al YAML.</div>
+          <div class="f">governance/param_change.py · advisor.* en config.yaml</div></div>
+      </div>
+    </div>
+
+    <!-- 6.6 SIMULACION -->
+    <div class="panel z-data">
+      <h2><span class="num">6.6</span>Modulo de Simulacion
+        &nbsp;<small style="font-weight:400;color:var(--muted)">reutiliza el motor de backtest</small></h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🧪 Barrido de parametros</div>
+          <div class="d">Todas las combinaciones de <code>param_grid</code> sobre <code>SmaCrossStrategy</code> + <code>Backtester</code>. KPIs agregados, ranking por Sharpe.</div>
+          <div class="f">simulation/service.py · simulation.* en config.yaml</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🕯️ Barras reales del broker</div>
+          <div class="d"><code>aggregate_daily_bars()</code> convierte OHLCV intradia (IBKR) a barras diarias del motor. Tickers agrupados por exchange (BME/NYSE).</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📱 /simulacion + contexto al advisor</div>
+          <div class="d">Barrido bajo demanda desde Telegram; <code>latest_summary()</code> se inyecta al informe/chat del advisor via <code>extra_context_fn</code>.</div></div>
+        <div class="card"><span class="st part"></span>
+          <div class="t">📋 Pendiente TFM</div>
+          <div class="d">Rebalanceo, DCA dinamico y stress test sobre cartera (objetivo 3).</div></div>
+      </div>
+    </div>
+
+    <!-- 6.7 P&L REALIZADO -->
+    <div class="panel z-mon">
+      <h2><span class="num">6.7</span>P&amp;L Realizado (fills IBKR)</h2>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div class="card"><span class="st ok"></span>
+          <div class="t">🧾 get_fills() -> execDetails()</div>
+          <div class="d">Reconcilia las ejecuciones de la cuenta, incluidos los cierres SL/TP disparados por el broker. Ticker mapeado con <code>_contract_to_ticker</code> (BME -> .MC).</div>
+          <div class="f">connectors/ibkr_read.py · schemas/order.py Fill</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📐 Emparejamiento FIFO</div>
+          <div class="d"><code>realized_pnl(fills, on_date)</code> empareja compras/ventas por ticker (longs y shorts), descuenta comisiones. Neto, bruto, cierres y comisiones del dia.</div>
+          <div class="f">portfolio/realized.py</div></div>
+        <div class="card"><span class="st ok"></span>
+          <div class="t">📊 Alimenta el informe</div>
+          <div class="d"><code>DailyStats.realized_pnl</code> aparece en el contexto del advisor (informe y chat). Best-effort: fallo o ausencia de fills nunca aborta el informe.</div></div>
+      </div>
+    </div>
+
+  </div><!-- /g3 row3.5 -->
+
   <!-- ROW 4: DATOS + INFRAESTRUCTURA -->
   <div style="display:flex;flex-direction:column;gap:12px">
 
@@ -620,13 +685,17 @@ aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
       <li><span class="k">Fundamental:</span> lote ≤35 tickers/30min · Semaphore(1) + delay 2,1s</li>
       <li><span class="k">Evaluadores:</span> {multi_source_context} en todos los prompts</li>
       <li><span class="k">Dashboard:</span> agent_monitor.py (Streamlit) añadido</li>
+      <li><span class="k">Advisor:</span> informe LLM horario + chat libre + propuestas de parametros con botones HITL -> YAML</li>
+      <li><span class="k">P&L realizado:</span> reconciliacion FIFO de fills IBKR (execDetails), incluye cierres SL/TP del broker</li>
+      <li><span class="k">Simulacion:</span> barrido de parametros sobre el motor de backtest, comando /simulacion, resultado expuesto al advisor</li>
+      <li><span class="k">Fundamental:</span> current_price de yfinance en el contexto para anclar entry_price</li>
     </ul>
   </div>
 
   <div class="side">
     <h3>Configuración clave</h3>
     <ul>
-      <li><span class="k">config.yaml</span> — mercados, LLM, buscadores, aggregator, HITL</li>
+      <li><span class="k">config.yaml</span> — mercados, LLM, buscadores, aggregator, HITL, advisor, simulation</li>
       <li><span class="k">risk_limits.yaml</span> — exposición, correlación, VaR, kill switch</li>
       <li><span class="k">decisor_weights.yaml</span> — pesos (0.3/0.3/0.3/0.1) y umbrales</li>
     </ul>
@@ -665,6 +734,9 @@ aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
       <li style="margin:3px 0">Si OPERATE → Bot Telegram: Aprobar / Rechazar / Pausar / Timeout</li>
       <li style="margin:3px 0">Si aprobado → Pre-Trade Validator → Bracket Order a IBKR via ib_async</li>
       <li style="margin:3px 0">El Monitor vigila P&L, SL y activa kill switch si procede</li>
+      <li style="margin:3px 0">El Advisor envia el informe horario por Telegram, responde el chat y propone cambios de parametros (Aplicar/Descartar -> YAML)</li>
+      <li style="margin:3px 0">/simulacion lanza un barrido de parametros sobre el motor de backtest con barras reales del broker</li>
+      <li style="margin:3px 0">Los fills de IBKR reconcilian el P&L realizado del dia (FIFO, neto de comisiones)</li>
       <li style="margin:3px 0">Toda decisión queda en PostgreSQL + Redis Streams + Audit Logger</li>
     </ol>
   </div>
@@ -674,7 +746,7 @@ aside{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
 
 <div class="foot">
   Documento autocontenido. Sistema Agéntico de Inversión v2 · Estado validado en runtime PAPER
-  (IB Gateway 4002 · DeepSeek v4-flash) · Agosto 2026.
+  (IB Gateway 4002 · DeepSeek v4-flash) · Septiembre 2026.
   Ver también: <code>docs/arquitectura.html</code> · <code>docs/diagrama_implementado.html</code>
 </div>
 
