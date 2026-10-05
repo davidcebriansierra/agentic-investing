@@ -266,14 +266,16 @@ class IBKRMarketDataClient:
     async def get_fills(self) -> list[Fill]:  # pragma: no cover - requiere IBKR
         """Ejecuciones de la cuenta (reconciliacion de P&L realizado).
 
-        Lee `execDetails()` de ib_async: incluye todos los fills del dia de trading,
-        tambien los cierres disparados por las patas SL/TP de las bracket orders.
-        Ante fallo devuelve lista vacia (la reconciliacion es best-effort).
+        Lee `reqExecutionsAsync(ExecutionFilter)` de ib_async: incluye todos los fills
+        del dia de trading, tambien los cierres disparados por las patas SL/TP de las
+        bracket orders. Ante fallo devuelve lista vacia (best-effort).
         """
         try:
-            details = self.ib.execDetails()
+            from ib_async import ExecutionFilter
+
+            details = await self.ib.reqExecutionsAsync(ExecutionFilter())
         except Exception as exc:  # noqa: BLE001
-            logger.warning("IBKR: execDetails() fallo (%s); sin fills.", exc)
+            logger.warning("IBKR: reqExecutionsAsync fallo (%s); sin fills.", exc)
             return []
         fills: list[Fill] = []
         for detail in details or []:
@@ -282,7 +284,13 @@ class IBKRMarketDataClient:
                 ticker = self._contract_to_ticker(contract)
                 execution = detail.execution
                 report = getattr(detail, "commissionReport", None)
-                ts = getattr(execution, "time", None)
+                ts = getattr(detail, "time", None) or getattr(execution, "time", None)
+                if isinstance(ts, str):  # ib_async puede devolver "yyyymmdd hh:mm:ss"
+                    try:
+                        ts = datetime.strptime(ts.strip(), "%Y%m%d %H:%M:%S")
+                    except ValueError:
+                        ts = None
+                ts_utc = _to_utc(ts) if ts is not None else datetime.now(timezone.utc)
                 fills.append(
                     Fill(
                         ticker=str(ticker),
@@ -290,7 +298,7 @@ class IBKRMarketDataClient:
                         quantity=float(getattr(execution, "shares", 0) or 0),
                         price=float(getattr(execution, "price", 0) or 0),
                         commission=float(getattr(report, "commission", 0.0) or 0.0),
-                        timestamp_utc=ts if ts is not None else datetime.now(timezone.utc),
+                        timestamp_utc=ts_utc,
                     )
                 )
             except Exception:  # noqa: BLE001 - un fill malformado no aborta el resto

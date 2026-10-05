@@ -499,6 +499,12 @@ class TelegramHITLClient:
             try:
                 await self._app.bot.send_message(uid, text, parse_mode=parse_mode)
                 sent += 1
+                continue
+            except Exception as exc:  # noqa: BLE001 - markup invalido del LLM
+                logger.debug("Markdown invalido para %s (%s); reintentando en texto plano.", uid, exc)
+            try:
+                await self._app.bot.send_message(uid, text)
+                sent += 1
             except Exception as exc:  # noqa: BLE001 - no abortar por un chat fallido
                 logger.warning("No se pudo enviar texto a %s: %s", uid, exc)
         return sent
@@ -552,7 +558,10 @@ class TelegramHITLClient:
             return
         await update.message.reply_text("📊 Generando informe...")
         text, proposals = await self.report_fn()
-        await update.message.reply_text(text, parse_mode="Markdown")
+        try:
+            await update.message.reply_text(text, parse_mode="Markdown")
+        except Exception:  # noqa: BLE001 - markup invalido del LLM -> texto plano
+            await update.message.reply_text(text)
         for prop in proposals or []:
             self._param_pending[prop.proposal_id] = prop
             await update.message.reply_text(
